@@ -80,13 +80,13 @@ def save_files_for_task(pyVNA, pna_base_dir, task, active_channels, channel_cal_
                 full_path_on_pna = os.path.join(pna_data_folder, filename)
                 
                 # Using your exact syntax for a single port
-                command = f"calculate{ch}:measure{ch}:data:snp:ports:save '{[port]}', '{full_path_on_pna}'"
+                command = f"calculate{ch}:measure{ch}:data:snp:ports:save '{port}', '{full_path_on_pna}'"
                 print(f"  - Ch {ch}: Saving Port {port} to '{full_path_on_pna}'")
                 pyVNA.write(command)
 
         # LOGIC FOR RAW DUT MEASUREMENT (.sNp files)
         elif task['type'] == 'raw_measurement':
-            ports_to_save = task['ports']
+            ports_to_save = ','.join(map(str,task['ports']))
             snp_suffix = f'.s{len(ports_to_save)}p'
             dut_name = task['base_name']
             filename = f"{dut_name}_{cal_status}_{timestamp}{snp_suffix}"
@@ -156,39 +156,39 @@ if __name__ == "__main__":
     AVERAGING_FACTOR = 20
 
     # --- 4. DEFINE THE MEASUREMENT PLANS ---
-
+    cal_ports = [3]
     # PLAN A: For verifying probe calibration standards
     CAL_VERIFICATION_PLAN = [
-        {
-            "description": "Probe in Air",
-            "prompt": "Keep the probe in the air",
-            "type": "cal_verification",
-            "base_name": "openAir",
-            "ports": [1, 3], # The ports to measure one by one
-            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        },
+        # {
+        #     "description": "Probe in Air",
+        #     "prompt": "Keep the probe in the air",
+        #     "type": "cal_verification",
+        #     "base_name": "openAir",
+        #     "ports": cal_ports, # The ports to measure one by one
+        #     "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        # },
         {
             "description": "Probe on Substrate OPEN",
             "prompt": "Touch the OPEN standard on the calibration substrate",
             "type": "cal_verification",
             "base_name": "open",
-            "ports": [1, 3],
+            "ports": cal_ports,
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
-        {
-            "description": "Probe on Substrate SHORT",
-            "prompt": "Touch the SHORT standard on the calibration substrate",
-            "type": "cal_verification",
-            "base_name": "short",
-            "ports": [1, 3],
-            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        },
+        # {
+        #     "description": "Probe on Substrate SHORT",
+        #     "prompt": "Touch the SHORT standard on the calibration substrate",
+        #     "type": "cal_verification",
+        #     "base_name": "short",
+        #     "ports": cal_ports,
+        #     "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        # },
         {
             "description": "Probe on Substrate LOAD",
             "prompt": "Touch the LOAD standard on the calibration substrate",
             "type": "cal_verification",
             "base_name": "load",
-            "ports": [1, 3],
+            "ports": cal_ports,
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
     ]
@@ -200,7 +200,7 @@ if __name__ == "__main__":
             "prompt": "Place probes on the DDR7_CB_A_7_substrate DUT",
             "type": "raw_measurement",
             "base_name": "DDR7_CB_A_7_substrate",
-            "ports": [1, 3], # The ports for the .sNp file
+            "ports": [1, 2, 3, 4], # The ports for the .sNp file
             "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
         },
     ]
@@ -217,8 +217,8 @@ if __name__ == "__main__":
         print(f"Connected to: {pyVNA.query('*IDN?').strip()}")
         
         # *** CHOOSE WHICH PLAN TO RUN HERE by uncommenting one line ***
-        # run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, CAL_VERIFICATION_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
-        run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, RAW_MEASUREMENT_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
+        run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, CAL_VERIFICATION_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
+        # run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, RAW_MEASUREMENT_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
 
     except pyvisa.errors.VisaIOError as e:
         print(f"\nVISA Error: {e}")
