@@ -63,6 +63,22 @@ def save_files_for_task(pyVNA, pna_base_dir, task, active_channels, channel_cal_
             print(f"  - Warning: Channel {ch} not in CHANNEL_CAL_STATUS_MAP. Skipping.")
             continue
 
+        # --- FIX IMPLEMENTED HERE ---
+        # 1. Get the list of available measurements (traces) on the channel.
+        meas_catalog = pyVNA.query(f"CALC{ch}:PAR:CAT?").strip().strip('"')
+        if not meas_catalog:
+            print(f"  - ERROR: Channel {ch} has no measurements to save. Skipping.")
+            continue
+        
+        # 2. Extract the name of the first measurement from the catalog.
+        # The catalog returns a comma-separated list, e.g., "CH1_S11_1,S11"
+        first_meas_name = meas_catalog.split(',')[0]
+        print(f"  - Ch {ch}: Found measurement '{first_meas_name}'.")
+
+        # 3. Explicitly select that measurement. This is the crucial step.
+        pyVNA.write(f"CALC{ch}:PAR:SEL '{first_meas_name}'")
+        # --- END OF FIX ---
+
         # Determine the correct subfolder for the current channel
         subfolder = task['subfolders'].get(ch)
         if not subfolder:
@@ -80,26 +96,40 @@ def save_files_for_task(pyVNA, pna_base_dir, task, active_channels, channel_cal_
                 full_path_on_pna = os.path.join(pna_data_folder, filename)
                 
                 # Using your exact syntax for a single port
-                command = f"calculate{ch}:measure{ch}:data:snp:ports:save '{port}', '{full_path_on_pna}'"
+                command = f"calculate{ch}:data:snp:ports:save '{port}', '{full_path_on_pna}'"
                 print(f"  - Ch {ch}: Saving Port {port} to '{full_path_on_pna}'")
                 pyVNA.write(command)
 
         # LOGIC FOR RAW DUT MEASUREMENT (.sNp files)
         elif task['type'] == 'raw_measurement':
             ports_to_save = ','.join(map(str,task['ports']))
-            snp_suffix = f'.s{len(ports_to_save)}p'
+            snp_suffix = f'.s{len(task['ports'])}p'
             dut_name = task['base_name']
             filename = f"{dut_name}_{cal_status}_{timestamp}{snp_suffix}"
             full_path_on_pna = os.path.join(pna_data_folder, filename)
 
             # Using your exact syntax for multiple ports
-            command = f"calculate{ch}:measure{ch}:data:snp:ports:save '{ports_to_save}', '{full_path_on_pna}'"
+            command = f"calculate{ch}:data:snp:ports:save '{ports_to_save}', '{full_path_on_pna}'"
             print(f"  - Ch {ch}: Saving Ports {ports_to_save} to '{full_path_on_pna}'")
             pyVNA.write(command)
 
     # Wait for all save operations to complete
     pyVNA.query('*OPC?')
     print("--- Save operations complete. ---")
+
+def reset_pna_state(pyVNA, channel_list):
+    """ Resets the PNA state to continuous sweep and turns off averaging. """
+    print("\n--- Resetting PNA State ---")
+    if not channel_list:
+        print("No active channels to reset.")
+        return
+    for channel in channel_list:
+        print(f"  - Channel {channel}: Disabling averaging and setting to continuous sweep.")
+        # Turn off averaging for the channel
+        pyVNA.write(f"SENS{channel}:AVER:STAT OFF")
+        # Set the sweep mode back to continuous
+        pyVNA.write(f"SENS{channel}:SWE:MODE CONT")
+    print("--- PNA reset to continuous mode. ---")
 
 # --- Main Orchestration Function ---
 
@@ -134,6 +164,7 @@ def run_measurement_plan(pyVNA, pna_base_dir, pc_base_dir, plan, channel_cal_map
     print("Measurement plan completed successfully!")
     print("="*50)
 
+    return active_channels # Return the list of channels for cleanup
 
 # --- Configuration and Execution ---
 
@@ -183,14 +214,14 @@ if __name__ == "__main__":
         #     "ports": cal_ports,
         #     "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         # },
-        {
-            "description": "Probe on Substrate LOAD",
-            "prompt": "Touch the LOAD standard on the calibration substrate",
-            "type": "cal_verification",
-            "base_name": "load",
-            "ports": cal_ports,
-            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        },
+        # {
+        #     "description": "Probe on Substrate LOAD",
+        #     "prompt": "Touch the LOAD standard on the calibration substrate",
+        #     "type": "cal_verification",
+        #     "base_name": "load",
+        #     "ports": cal_ports,
+        #     "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        # }
     ]
     
     # PLAN B: For measuring an actual N-port DUT
@@ -217,8 +248,12 @@ if __name__ == "__main__":
         print(f"Connected to: {pyVNA.query('*IDN?').strip()}")
         
         # *** CHOOSE WHICH PLAN TO RUN HERE by uncommenting one line ***
-        run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, CAL_VERIFICATION_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
-        # run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, RAW_MEASUREMENT_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
+        channels_used = run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, CAL_VERIFICATION_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
+        # channels_used = run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, RAW_MEASUREMENT_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
+        
+        # After the plan is finished, reset the PNA state
+        if channels_used:
+            reset_pna_state(pyVNA, channels_used)
 
     except pyvisa.errors.VisaIOError as e:
         print(f"\nVISA Error: {e}")
