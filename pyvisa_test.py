@@ -129,6 +129,9 @@ def reset_pna_state(pyVNA, channel_list):
         pyVNA.write(f"SENS{channel}:AVER:STAT OFF")
         # Set the sweep mode back to continuous
         pyVNA.write(f"SENS{channel}:SWE:MODE CONT")
+
+    # Wait for all reset operations to complete
+    pyVNA.query('*OPC?')
     print("--- PNA reset to continuous mode. ---")
 
 # --- Main Orchestration Function ---
@@ -160,6 +163,10 @@ def run_measurement_plan(pyVNA, pna_base_dir, pc_base_dir, plan, channel_cal_map
         # --- Data Saving ---
         save_files_for_task(pyVNA, pna_base_dir, task, active_channels, channel_cal_map)
 
+        # After the plan is finished, reset the PNA state
+        if active_channels:
+            reset_pna_state(pyVNA, active_channels)
+
     print("\n" + "="*50)
     print("Measurement plan completed successfully!")
     print("="*50)
@@ -187,17 +194,17 @@ if __name__ == "__main__":
     AVERAGING_FACTOR = 20
 
     # --- 4. DEFINE THE MEASUREMENT PLANS ---
-    cal_ports = [3]
+    cal_ports = [2]
     # PLAN A: For verifying probe calibration standards
     CAL_VERIFICATION_PLAN = [
-        # {
-        #     "description": "Probe in Air",
-        #     "prompt": "Keep the probe in the air",
-        #     "type": "cal_verification",
-        #     "base_name": "openAir",
-        #     "ports": cal_ports, # The ports to measure one by one
-        #     "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        # },
+        {
+            "description": "Probe in Air",
+            "prompt": "Keep the probe in the air",
+            "type": "cal_verification",
+            "base_name": "openAir",
+            "ports": cal_ports, # The ports to measure one by one
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        },
         {
             "description": "Probe on Substrate OPEN",
             "prompt": "Touch the OPEN standard on the calibration substrate",
@@ -206,22 +213,22 @@ if __name__ == "__main__":
             "ports": cal_ports,
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
-        # {
-        #     "description": "Probe on Substrate SHORT",
-        #     "prompt": "Touch the SHORT standard on the calibration substrate",
-        #     "type": "cal_verification",
-        #     "base_name": "short",
-        #     "ports": cal_ports,
-        #     "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        # },
-        # {
-        #     "description": "Probe on Substrate LOAD",
-        #     "prompt": "Touch the LOAD standard on the calibration substrate",
-        #     "type": "cal_verification",
-        #     "base_name": "load",
-        #     "ports": cal_ports,
-        #     "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        # }
+        {
+            "description": "Probe on Substrate SHORT",
+            "prompt": "Touch the SHORT standard on the calibration substrate",
+            "type": "cal_verification",
+            "base_name": "short",
+            "ports": cal_ports,
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        },
+        {
+            "description": "Probe on Substrate LOAD",
+            "prompt": "Touch the LOAD standard on the calibration substrate",
+            "type": "cal_verification",
+            "base_name": "load",
+            "ports": cal_ports,
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        }
     ]
     
     # PLAN B: For measuring an actual N-port DUT
@@ -230,15 +237,15 @@ if __name__ == "__main__":
             "description": "Measure DDR7 Substrate",
             "prompt": "Place probes on the DDR7_CB_A_7_substrate DUT",
             "type": "raw_measurement",
-            "base_name": "DDR7_CB_A_7_substrate",
-            "ports": [1, 2, 3, 4], # The ports for the .sNp file
+            "base_name": "DDR6_CB_A_7_substrate",
+            "ports": [1, 3, 2, 4], # The ports for the .sNp file
             "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
         },
     ]
 
     # --- 5. CONNECT AND RUN THE SELECTED PLAN ---
     VISA_ADDRESS = "TCPIP0::10.76.79.222::inst0::INSTR"
-    TIMEOUT_MS = 600000
+    TIMEOUT_MS = 1000000
 
     pyVNA = None
     try:
@@ -250,10 +257,6 @@ if __name__ == "__main__":
         # *** CHOOSE WHICH PLAN TO RUN HERE by uncommenting one line ***
         channels_used = run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, CAL_VERIFICATION_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
         # channels_used = run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, RAW_MEASUREMENT_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
-        
-        # After the plan is finished, reset the PNA state
-        if channels_used:
-            reset_pna_state(pyVNA, channels_used)
 
     except pyvisa.errors.VisaIOError as e:
         print(f"\nVISA Error: {e}")
