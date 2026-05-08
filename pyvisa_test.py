@@ -194,11 +194,11 @@ if __name__ == "__main__":
     AVERAGING_FACTOR = 20
 
     # --- 4. DEFINE THE MEASUREMENT PLANS ---
-    cal_ports = [2]
+    cal_ports = [1,3]
     # PLAN A: For verifying probe calibration standards
     CAL_VERIFICATION_PLAN = [
         {
-            "description": "Probe in Air",
+            "description": f"Probe {cal_ports} in Air",
             "prompt": "Keep the probe in the air",
             "type": "cal_verification",
             "base_name": "openAir",
@@ -206,7 +206,7 @@ if __name__ == "__main__":
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
-            "description": "Probe on Substrate OPEN",
+            "description": f"Probe {cal_ports} on Substrate OPEN",
             "prompt": "Touch the OPEN standard on the calibration substrate",
             "type": "cal_verification",
             "base_name": "open",
@@ -214,7 +214,7 @@ if __name__ == "__main__":
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
-            "description": "Probe on Substrate SHORT",
+            "description": f"Probe {cal_ports} on Substrate SHORT",
             "prompt": "Touch the SHORT standard on the calibration substrate",
             "type": "cal_verification",
             "base_name": "short",
@@ -222,11 +222,35 @@ if __name__ == "__main__":
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
-            "description": "Probe on Substrate LOAD",
+            "description": f"Probe {cal_ports} on Substrate LOAD",
             "prompt": "Touch the LOAD standard on the calibration substrate",
             "type": "cal_verification",
             "base_name": "load",
             "ports": cal_ports,
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        },
+        {
+            "description": "Port 1 and 3 thru", # NEXT path
+            "prompt": "Connect port 1 and 3 through adapters",
+            "type": "raw_measurement",
+            "base_name": "port1_unknownThru_port3",
+            "ports": [1,3],
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        },
+        {
+            "description": "Port 1 and 2 thru", # Insertion path 1
+            "prompt": "Connect port 1 and 2 through adapters",
+            "type": "raw_measurement",
+            "base_name": "port1_unknownThru_port2",
+            "ports": [1,2],
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        },
+        {
+            "description": "Port 3 and 4 thru", # Insertion path 2
+            "prompt": "Connect port 3 and 4 through adapters",
+            "type": "raw_measurement",
+            "base_name": "port3_unknownThru_port4",
+            "ports": [3,4],
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         }
     ]
@@ -238,7 +262,7 @@ if __name__ == "__main__":
             "prompt": "Place probes on the DDR7_CB_A_7_substrate DUT",
             "type": "raw_measurement",
             "base_name": "DDR6_CB_A_7_substrate",
-            "ports": [1, 3, 2, 4], # The ports for the .sNp file
+            "ports": [1, 2, 3, 4], # The ports for the .sNp file
             "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
         },
     ]
