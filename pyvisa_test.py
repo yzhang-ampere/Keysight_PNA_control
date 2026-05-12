@@ -198,6 +198,30 @@ if __name__ == "__main__":
     # PLAN A: For verifying probe calibration standards
     CAL_VERIFICATION_PLAN = [
         {
+            "description": "Port 1 and 2 thru", # Insertion path 1
+            "prompt": "Connect port 1 and 2 through adapters",
+            "type": "raw_measurement",
+            "base_name": "port1_unknownThru_port2",
+            "ports": [1,2],
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        },
+        {
+            "description": "Port 1 and 3 thru", # NEXT path
+            "prompt": "Connect port 1 and 3 through adapters",
+            "type": "raw_measurement",
+            "base_name": "port1_unknownThru_port3",
+            "ports": [1,3],
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        },
+        {
+            "description": "Port 3 and 4 thru", # Insertion path 2
+            "prompt": "Connect port 3 and 4 through adapters",
+            "type": "raw_measurement",
+            "base_name": "port3_unknownThru_port4",
+            "ports": [3,4],
+            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
+        },
+        {
             "description": f"Probe {cal_ports} in Air",
             "prompt": "Keep the probe in the air",
             "type": "cal_verification",
@@ -228,43 +252,75 @@ if __name__ == "__main__":
             "base_name": "load",
             "ports": cal_ports,
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        },
-        {
-            "description": "Port 1 and 3 thru", # NEXT path
-            "prompt": "Connect port 1 and 3 through adapters",
-            "type": "raw_measurement",
-            "base_name": "port1_unknownThru_port3",
-            "ports": [1,3],
-            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        },
-        {
-            "description": "Port 1 and 2 thru", # Insertion path 1
-            "prompt": "Connect port 1 and 2 through adapters",
-            "type": "raw_measurement",
-            "base_name": "port1_unknownThru_port2",
-            "ports": [1,2],
-            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
-        },
-        {
-            "description": "Port 3 and 4 thru", # Insertion path 2
-            "prompt": "Connect port 3 and 4 through adapters",
-            "type": "raw_measurement",
-            "base_name": "port3_unknownThru_port4",
-            "ports": [3,4],
-            "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         }
     ]
     
     # PLAN B: For measuring an actual N-port DUT
     RAW_MEASUREMENT_PLAN = [
+        # {
+        #     "description": "Measure DDR7 Substrate",
+        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb8 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb8",
+        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure DDR7 Substrate",
+        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb7 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb7",
+        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure DDR7 Substrate",
+        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb6 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb6",
+        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure DDR7 Substrate",
+        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb3 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb3",
+        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure DDR7 Substrate",
+        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb2 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb2",
+        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure DDR7 Substrate",
+        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb1 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb1",
+        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
         {
             "description": "Measure DDR7 Substrate",
-            "prompt": "Place probes on the DDR7_CB_A_7_substrate DUT",
+            "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb1 DUT",
             "type": "raw_measurement",
-            "base_name": "DDR6_CB_A_7_substrate",
+            "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb1_reconnect_SMA_cable",
             "ports": [1, 2, 3, 4], # The ports for the .sNp file
             "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
         },
+        {
+            "description": "Measure DDR7 Substrate",
+            "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb1 DUT",
+            "type": "raw_measurement",
+            "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb1_reconnect_probe_cable",
+            "ports": [1, 2, 3, 4], # The ports for the .sNp file
+            "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        }
     ]
 
     # --- 5. CONNECT AND RUN THE SELECTED PLAN ---
@@ -279,8 +335,8 @@ if __name__ == "__main__":
         print(f"Connected to: {pyVNA.query('*IDN?').strip()}")
         
         # *** CHOOSE WHICH PLAN TO RUN HERE by uncommenting one line ***
-        channels_used = run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, CAL_VERIFICATION_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
-        # channels_used = run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, RAW_MEASUREMENT_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
+        # channels_used = run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, CAL_VERIFICATION_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
+        channels_used = run_measurement_plan(pyVNA, PNA_BASE_DIRECTORY, PC_BASE_DIRECTORY, RAW_MEASUREMENT_PLAN, CHANNEL_CAL_STATUS_MAP, AVERAGING_FACTOR)
 
     except pyvisa.errors.VisaIOError as e:
         print(f"\nVISA Error: {e}")
