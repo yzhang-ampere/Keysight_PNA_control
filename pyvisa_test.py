@@ -185,8 +185,8 @@ if __name__ == "__main__":
 
     # --- 2. DEFINE CHANNEL-TO-CALIBRATION MAPPING ---
     CHANNEL_CAL_STATUS_MAP = {
-        1: 'calToProbe',
-        2: 'calToCable',
+        1: 'calToCable',
+        2: 'calToProbe',
         3: 'calToCableDeembedProbe',
     }
     
@@ -257,70 +257,150 @@ if __name__ == "__main__":
     
     # PLAN B: For measuring an actual N-port DUT
     RAW_MEASUREMENT_PLAN = [
+        # # ECAL thru connections:
+        # # 1-2, 
+        # # Singled-ended DDR5_11_DATA_B_3
         # {
-        #     "description": "Measure DDR7 Substrate",
-        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb8 DUT",
+        #     "description": "Measure ISC DDR5_11_DATA_B_3",
+        #     "prompt": "1 <- PCB1+skt+PCB2 DDR5_11_DATA_B_3 -> 3",
         #     "type": "raw_measurement",
-        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb8",
-        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "base_name": "DDR5_11_DATA_B_3_pcb1_socket_pcb2",
+        #     "ports": [1,3], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
         # },
         # {
-        #     "description": "Measure DDR7 Substrate",
-        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb7 DUT",
+        #     "description": "Measure 2xThru of DDR5_11_DATA_B_3 on PCB1",
+        #     "prompt": "1 <- 2xThru DDR5_11_DATA_B_3 on PCB1 -> 3",
         #     "type": "raw_measurement",
-        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb7",
-        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "base_name": "2xThur_DDR5_11_DATA_B_3_pcb1",
+        #     "ports": [1,3], # The ports for the .sNp file
+        #     "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure 2xThru of DDR5_11_DATA_B_3 on PCB2",
+        #     "prompt": "2 <- 2xThru DDR5_11_DATA_B_3 on PCB2 -> 4",
+        #     "type": "raw_measurement",
+        #     "base_name": "2xThur_DDR5_11_DATA_B_3_pcb2",
+        #     "ports": [2,4], # The ports for the .sNp file
+        #     "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # # Single-ended DDR5_10_CB_A_4
+        # {
+        #     "description": "Measure ISC DDR5_10_CB_A_4",
+        #     "prompt": "1 <- PCB1+skt+PCB2 DDR5_10_CB_A_4 -> 3",
+        #     "type": "raw_measurement",
+        #     "base_name": "DDR5_10_CB_A_4_pcb1_socket_pcb2",
+        #     "ports": [1,3], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
         # },
         # {
-        #     "description": "Measure DDR7 Substrate",
-        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb6 DUT",
+        #     "description": "Measure 2xThru of DDR5_10_CB_A_4 on PCB1",
+        #     "prompt": "2 <- 2xThru DDR5_10_CB_A_4 on PCB1 -> 4",
         #     "type": "raw_measurement",
-        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb6",
-        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
-        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        #     "base_name": "2xThur_DDR5_10_CB_A_4_pcb1",
+        #     "ports": [1,3], # The ports for the .sNp file
+        #     "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
         # },
         # {
-        #     "description": "Measure DDR7 Substrate",
-        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb3 DUT",
+        #     "description": "Measure 2xThru of DDR5_10_CB_A_4 on PCB2",
+        #     "prompt": "2 <- 2xThru DDR5_10_CB_A_4 on PCB2 -> 4",
         #     "type": "raw_measurement",
-        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb3",
-        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
-        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        #     "base_name": "2xThur_DDR5_10_CB_A_4_pcb2",
+        #     "ports": [2,4], # The ports for the .sNp file
+        #     "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
         # },
+
+        # # Differential pair DDR5_10_DQS_A_4
+        # # cable 1 <-- PCB1 N -- PCB2 N --> cable 2
+        # # cable 3 <-- PCB1 P -- PCB2 P --> cable 4
         # {
-        #     "description": "Measure DDR7 Substrate",
-        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb2 DUT",
+        #     "description": "Measure ISC DDR5_10_DQS_A_4",
+        #     "prompt": "1 <- PCB1+skt+PCB2 DDR5_10_DQS_A_4_N -> 2, 3 <- PCB1+skt+PCB2 DDR5_10_DQS_A_4_P -> 4",
         #     "type": "raw_measurement",
-        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb2",
-        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
-        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
-        # },
-        # {
-        #     "description": "Measure DDR7 Substrate",
-        #     "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb1 DUT",
-        #     "type": "raw_measurement",
-        #     "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb1",
-        #     "ports": [1, 2, 3, 4], # The ports for the .sNp file
+        #     "base_name": "DDR5_10_DQS_A_4_pcb1_socket_pcb2",
+        #     "ports": [1,2,3,4], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
         # },
         {
-            "description": "Measure DDR7 Substrate",
-            "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb1 DUT",
+            "description": "Measure 2xThru of DDR5_10_DQS_A_4 on PCB1",
+            "prompt": "1 <- 2xThru DDR5_10_DQS_A_4_N -> 2, 3 <- 2xThru DDR5_10_DQS_A_4_P -> 4 on PCB1",
             "type": "raw_measurement",
-            "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb1_reconnect_SMA_cable",
-            "ports": [1, 2, 3, 4], # The ports for the .sNp file
-            "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+            "base_name": "2xThur_DDR5_10_DQS_A_4_pcb1",
+            "ports": [1,2,3,4], # The ports for the .sNp file
+            "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
         },
         {
-            "description": "Measure DDR7 Substrate",
-            "prompt": "Place probes on the DDR5_10_DQS_A_9_substrate_socket_pcb1 DUT",
+            "description": "Measure 2xThru of DDR5_10_DQS_A_4 on PCB2",
+            "prompt": "1 <- 2xThru DDR5_10_DQS_A_4_N -> 2, 3 <- 2xThru DDR5_10_DQS_A_4_P -> 4 on PCB2",
             "type": "raw_measurement",
-            "base_name": "DDR5_10_DQS_A_9_substrate_socket_pcb1_reconnect_probe_cable",
-            "ports": [1, 2, 3, 4], # The ports for the .sNp file
-            "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+            "base_name": "2xThur_DDR5_10_DQS_A_4_pcb2",
+            "ports": [1,2,3,4], # The ports for the .sNp file
+            "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
         }
+        # {
+        #     "description": "Measure PCIE Substrate",
+        #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb8 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "PCIERC5_TX1_substrate_socket_pcb8",
+        #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure PCIE Substrate",
+        #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb7 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "PCIERC5_TX1_substrate_socket_pcb7",
+        #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure PCIE Substrate",
+        #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb6 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "PCIERC5_TX1_substrate_socket_pcb6",
+        #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure PCIE Substrate",
+        #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb3 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "PCIERC5_TX1_substrate_socket_pcb3",
+        #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure PCIE Substrate",
+        #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb2 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "PCIERC5_TX1_substrate_socket_pcb2",
+        #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure PCIE Substrate",
+        #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb3 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "PCIERC5_TX1_substrate_socket_pcb3",
+        #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure PCIE Substrate",
+        #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb2 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "PCIERC5_TX1_substrate_socket_pcb2",
+        #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # },
+        # {
+        #     "description": "Measure PCIE Substrate",
+        #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb1 DUT",
+        #     "type": "raw_measurement",
+        #     "base_name": "PCIERC5_TX1_substrate_socket_pcb1",
+        #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
+        #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
+        # }
     ]
 
     # --- 5. CONNECT AND RUN THE SELECTED PLAN ---
@@ -346,4 +426,4 @@ if __name__ == "__main__":
     finally:
         if pyVNA:
             print("\nClosing connection.")
-            pyVNA.close()
+            pyVNA.close() #
