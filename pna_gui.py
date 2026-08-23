@@ -1,6 +1,7 @@
 """Tkinter entry point for editing and running PNA measurement plans."""
 
 import json
+import queue
 import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
@@ -74,10 +75,31 @@ def main():
     ).pack(side="left", padx=8)
     status = tk.StringVar(value="Ready")
     ttk.Label(controls, textvariable=status).pack(side="left", padx=15)
+    events = queue.Queue()
 
     def prompt_callback(message, event):
         messagebox.showinfo("Measurement action required", message, parent=root)
         event.set()
+
+    def poll_events():
+        try:
+            while True:
+                event_type, *payload = events.get_nowait()
+                if event_type == "status":
+                    status.set(payload[0])
+                elif event_type == "prompt":
+                    message, event = payload
+                    prompt_callback(message, event)
+                elif event_type == "error":
+                    status.set("Failed")
+                    messagebox.showerror("Measurement error", payload[0], parent=root)
+                elif event_type == "finished":
+                    if payload[0]:
+                        status.set("Completed successfully")
+                    start_button.config(state="normal")
+        except queue.Empty:
+            pass
+        root.after(100, poll_events)
 
     def start():
         try:
@@ -106,39 +128,37 @@ def main():
 
         def worker():
             controller = None
+            succeeded = False
             try:
-                root.after(0, status.set, "Connecting to PNA...")
+                events.put(("status", "Connecting to PNA..."))
                 controller = PNAController.connect(visa_address, timeout)
                 for plan in plans:
-                    root.after(0, status.set, "Running measurement plan...")
+                    events.put(("status", "Running measurement plan..."))
                     controller.run_plan(
                         pna_data_directory,
                         pc_data_directory,
                         plan,
                         channel_map,
                         average_factor,
-                        lambda message: _wait_for_prompt(root, message),
+                        _wait_for_prompt,
                     )
-                root.after(0, status.set, "Completed successfully")
+                succeeded = True
             except Exception as error:
-                error_message = str(error)
-                root.after(0, status.set, "Failed")
-                root.after(0, lambda: messagebox.showerror(
-                    "Measurement error", error_message, parent=root
-                ))
+                events.put(("error", str(error)))
             finally:
                 if controller:
                     controller.close()
-                root.after(0, start_button.config, {"state": "normal"})
+                events.put(("finished", succeeded))
 
-    def _wait_for_prompt(window, message):
+    def _wait_for_prompt(message):
         event = threading.Event()
-        window.after(0, prompt_callback, message, event)
+        events.put(("prompt", message, event))
         event.wait()
 
     start_button = ttk.Button(controls, text="Start", command=start)
     start_button.pack(side="right")
     ttk.Button(controls, text="Quit", command=root.destroy).pack(side="right", padx=8)
+    root.after(100, poll_events)
     root.mainloop()
 
 
