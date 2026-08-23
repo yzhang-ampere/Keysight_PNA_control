@@ -57,6 +57,31 @@ def save_files_for_task(pyVNA, pna_base_dir, task, active_channels, channel_cal_
     print(f"--- Preparing to Save Files for: {task['description']} ---")
     timestamp = time.strftime("%Y%m%d")
 
+    # Each combination is saved from the same averaged sweep. Entries may be
+    # port lists or dictionaries with their own ports and base name.
+    if "port_combinations" in task:
+        combinations = []
+        for combination in task["port_combinations"]:
+            if isinstance(combination, dict):
+                ports = combination.get("ports", [])
+                base_name = combination.get("base_name", task["base_name"])
+            else:
+                ports = combination
+                base_name = task["base_name"]
+            combinations.append((list(ports), base_name))
+    else:
+        combinations = [(list(task["ports"]), task["base_name"])]
+
+    if not combinations or any(not ports or not base_name for ports, base_name in combinations):
+        print("  - ERROR: No valid port combinations configured. Skipping task.")
+        return
+
+    # Shorthand list entries share one base name; add ports to avoid overwrites.
+    add_port_suffix = "port_combinations" in task and all(
+        not isinstance(combination, dict)
+        for combination in task["port_combinations"]
+    ) and len(combinations) > 1
+
     # This loop handles saving data for each active channel
     for ch in active_channels:
         if ch not in channel_cal_map:
@@ -88,27 +113,13 @@ def save_files_for_task(pyVNA, pna_base_dir, task, active_channels, channel_cal_
         pna_data_folder = os.path.join(pna_base_dir, subfolder)
         cal_status = channel_cal_map[ch]
 
-        # LOGIC FOR CALIBRATION VERIFICATION (.s1p files)
-        if task['type'] == 'cal_verification':
-            for port in task['ports']:
-                dut_name = f"port{port}_{task['base_name']}"
-                filename = f"{dut_name}_{cal_status}_{timestamp}.s1p"
-                full_path_on_pna = os.path.join(pna_data_folder, filename)
-                
-                # Using your exact syntax for a single port
-                command = f"calculate{ch}:data:snp:ports:save '{port}', '{full_path_on_pna}'"
-                print(f"  - Ch {ch}: Saving Port {port} to '{full_path_on_pna}'")
-                pyVNA.write(command)
-
-        # LOGIC FOR RAW DUT MEASUREMENT (.sNp files)
-        elif task['type'] == 'raw_measurement':
-            ports_to_save = ','.join(map(str,task['ports']))
-            snp_suffix = f'.s{len(task['ports'])}p'
-            dut_name = task['base_name']
-            filename = f"{dut_name}_{cal_status}_{timestamp}{snp_suffix}"
+        for ports, base_name in combinations:
+            ports_to_save = ','.join(map(str, ports))
+            port_suffix = f"_ports{'_'.join(map(str, ports))}" if add_port_suffix else ""
+            snp_suffix = f'.s{len(ports)}p'
+            dut_name = base_name
+            filename = f"{dut_name}{port_suffix}_{cal_status}_{timestamp}{snp_suffix}"
             full_path_on_pna = os.path.join(pna_data_folder, filename)
-
-            # Using your exact syntax for multiple ports
             command = f"calculate{ch}:data:snp:ports:save '{ports_to_save}', '{full_path_on_pna}'"
             print(f"  - Ch {ch}: Saving Ports {ports_to_save} to '{full_path_on_pna}'")
             pyVNA.write(command)
@@ -200,57 +211,62 @@ if __name__ == "__main__":
         {
             "description": "Port 1 and 2 thru", # Insertion path 1
             "prompt": "Connect port 1 and 2 through adapters",
-            "type": "raw_measurement",
             "base_name": "port1_unknownThru_port2",
-            "ports": [1,2],
+            "port_combinations": [{"ports": [1,2], "base_name": "port1_unknownThru_port2"}],
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
             "description": "Port 1 and 3 thru", # NEXT path
             "prompt": "Connect port 1 and 3 through adapters",
-            "type": "raw_measurement",
             "base_name": "port1_unknownThru_port3",
-            "ports": [1,3],
+            "port_combinations": [{"ports": [1,3], "base_name": "port1_unknownThru_port3"}],
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
             "description": "Port 3 and 4 thru", # Insertion path 2
             "prompt": "Connect port 3 and 4 through adapters",
-            "type": "raw_measurement",
             "base_name": "port3_unknownThru_port4",
-            "ports": [3,4],
+            "port_combinations": [{"ports": [3,4], "base_name": "port3_unknownThru_port4"}],
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
             "description": f"Probe {cal_ports} in Air",
             "prompt": "Keep the probe in the air",
-            "type": "cal_verification",
             "base_name": "openAir",
-            "ports": cal_ports, # The ports to measure one by one
+            "port_combinations": [
+                {"ports": [port], "base_name": f"port{port}_openAir"}
+                for port in cal_ports
+            ],
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
             "description": f"Probe {cal_ports} on Substrate OPEN",
             "prompt": "Touch the OPEN standard on the calibration substrate",
-            "type": "cal_verification",
             "base_name": "open",
-            "ports": cal_ports,
+            "port_combinations": [
+                {"ports": [port], "base_name": f"port{port}_open"}
+                for port in cal_ports
+            ],
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
             "description": f"Probe {cal_ports} on Substrate SHORT",
             "prompt": "Touch the SHORT standard on the calibration substrate",
-            "type": "cal_verification",
             "base_name": "short",
-            "ports": cal_ports,
+            "port_combinations": [
+                {"ports": [port], "base_name": f"port{port}_short"}
+                for port in cal_ports
+            ],
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         },
         {
             "description": f"Probe {cal_ports} on Substrate LOAD",
             "prompt": "Touch the LOAD standard on the calibration substrate",
-            "type": "cal_verification",
             "base_name": "load",
-            "ports": cal_ports,
+            "port_combinations": [
+                {"ports": [port], "base_name": f"port{port}_load"}
+                for port in cal_ports
+            ],
             "subfolders": {1: "verify_probe_calibration", 2: "fixture"}
         }
     ]
@@ -263,7 +279,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure ISC DDR5_11_DATA_B_3",
         #     "prompt": "1 <- PCB1+skt+PCB2 DDR5_11_DATA_B_3 -> 3",
-        #     "type": "raw_measurement",
         #     "base_name": "DDR5_11_DATA_B_3_pcb1_socket_pcb2",
         #     "ports": [1,3], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -271,7 +286,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure 2xThru of DDR5_11_DATA_B_3 on PCB1",
         #     "prompt": "1 <- 2xThru DDR5_11_DATA_B_3 on PCB1 -> 3",
-        #     "type": "raw_measurement",
         #     "base_name": "2xThur_DDR5_11_DATA_B_3_pcb1",
         #     "ports": [1,3], # The ports for the .sNp file
         #     "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
@@ -279,7 +293,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure 2xThru of DDR5_11_DATA_B_3 on PCB2",
         #     "prompt": "2 <- 2xThru DDR5_11_DATA_B_3 on PCB2 -> 4",
-        #     "type": "raw_measurement",
         #     "base_name": "2xThur_DDR5_11_DATA_B_3_pcb2",
         #     "ports": [2,4], # The ports for the .sNp file
         #     "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
@@ -288,7 +301,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure ISC DDR5_10_CB_A_4",
         #     "prompt": "1 <- PCB1+skt+PCB2 DDR5_10_CB_A_4 -> 3",
-        #     "type": "raw_measurement",
         #     "base_name": "DDR5_10_CB_A_4_pcb1_socket_pcb2",
         #     "ports": [1,3], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -296,7 +308,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure 2xThru of DDR5_10_CB_A_4 on PCB1",
         #     "prompt": "2 <- 2xThru DDR5_10_CB_A_4 on PCB1 -> 4",
-        #     "type": "raw_measurement",
         #     "base_name": "2xThur_DDR5_10_CB_A_4_pcb1",
         #     "ports": [1,3], # The ports for the .sNp file
         #     "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
@@ -304,7 +315,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure 2xThru of DDR5_10_CB_A_4 on PCB2",
         #     "prompt": "2 <- 2xThru DDR5_10_CB_A_4 on PCB2 -> 4",
-        #     "type": "raw_measurement",
         #     "base_name": "2xThur_DDR5_10_CB_A_4_pcb2",
         #     "ports": [2,4], # The ports for the .sNp file
         #     "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
@@ -316,7 +326,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure ISC DDR5_10_DQS_A_4",
         #     "prompt": "1 <- PCB1+skt+PCB2 DDR5_10_DQS_A_4_N -> 2, 3 <- PCB1+skt+PCB2 DDR5_10_DQS_A_4_P -> 4",
-        #     "type": "raw_measurement",
         #     "base_name": "DDR5_10_DQS_A_4_pcb1_socket_pcb2",
         #     "ports": [1,2,3,4], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -324,23 +333,26 @@ if __name__ == "__main__":
         {
             "description": "Measure 2xThru of DDR5_10_DQS_A_4 on PCB1",
             "prompt": "1 <- 2xThru DDR5_10_DQS_A_4_N -> 2, 3 <- 2xThru DDR5_10_DQS_A_4_P -> 4 on PCB1",
-            "type": "raw_measurement",
             "base_name": "2xThur_DDR5_10_DQS_A_4_pcb1",
-            "ports": [1,2,3,4], # The ports for the .sNp file
+            "port_combinations": [
+                {"ports": [1,2], "base_name": "2xThur_DDR5_10_DQS_A_4_pcb1_N"},
+                {"ports": [3,4], "base_name": "2xThur_DDR5_10_DQS_A_4_pcb1_P"},
+            ],
             "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
         },
         {
             "description": "Measure 2xThru of DDR5_10_DQS_A_4 on PCB2",
             "prompt": "1 <- 2xThru DDR5_10_DQS_A_4_N -> 2, 3 <- 2xThru DDR5_10_DQS_A_4_P -> 4 on PCB2",
-            "type": "raw_measurement",
             "base_name": "2xThur_DDR5_10_DQS_A_4_pcb2",
-            "ports": [1,2,3,4], # The ports for the .sNp file
+            "port_combinations": [
+                {"ports": [1,2], "base_name": "2xThur_DDR5_10_DQS_A_4_pcb2_N"},
+                {"ports": [3,4], "base_name": "2xThur_DDR5_10_DQS_A_4_pcb2_P"},
+            ],
             "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"}
         }
         # {
         #     "description": "Measure PCIE Substrate",
         #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb8 DUT",
-        #     "type": "raw_measurement",
         #     "base_name": "PCIERC5_TX1_substrate_socket_pcb8",
         #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -348,7 +360,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure PCIE Substrate",
         #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb7 DUT",
-        #     "type": "raw_measurement",
         #     "base_name": "PCIERC5_TX1_substrate_socket_pcb7",
         #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -356,7 +367,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure PCIE Substrate",
         #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb6 DUT",
-        #     "type": "raw_measurement",
         #     "base_name": "PCIERC5_TX1_substrate_socket_pcb6",
         #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -364,7 +374,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure PCIE Substrate",
         #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb3 DUT",
-        #     "type": "raw_measurement",
         #     "base_name": "PCIERC5_TX1_substrate_socket_pcb3",
         #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -372,7 +381,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure PCIE Substrate",
         #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb2 DUT",
-        #     "type": "raw_measurement",
         #     "base_name": "PCIERC5_TX1_substrate_socket_pcb2",
         #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -380,7 +388,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure PCIE Substrate",
         #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb3 DUT",
-        #     "type": "raw_measurement",
         #     "base_name": "PCIERC5_TX1_substrate_socket_pcb3",
         #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -388,7 +395,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure PCIE Substrate",
         #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb2 DUT",
-        #     "type": "raw_measurement",
         #     "base_name": "PCIERC5_TX1_substrate_socket_pcb2",
         #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
@@ -396,7 +402,6 @@ if __name__ == "__main__":
         # {
         #     "description": "Measure PCIE Substrate",
         #     "prompt": "Place probes on the PCIERC5_TX1_substrate_socket_pcb1 DUT",
-        #     "type": "raw_measurement",
         #     "base_name": "PCIERC5_TX1_substrate_socket_pcb1",
         #     "ports": [3, 4, 1, 2], # The ports for the .sNp file
         #     "subfolders": {1: "raw_measure", 2: "raw_measure", 3: "raw_measure"}
