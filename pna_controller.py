@@ -5,16 +5,20 @@ import time
 
 
 class PNAController:
-    def __init__(self, resource, timeout_ms=1_000_000):
+    def __init__(self, resource, timeout_ms=1_000_000, logger=print):
         self.resource = resource
         self.resource.timeout = timeout_ms
+        self.logger = logger
+
+    def log(self, message):
+        self.logger(message)
 
     @classmethod
-    def connect(cls, visa_address, timeout_ms=1_000_000):
+    def connect(cls, visa_address, timeout_ms=1_000_000, logger=print):
         import pyvisa
         resource = pyvisa.ResourceManager().open_resource(visa_address)
-        controller = cls(resource, timeout_ms)
-        print(f"Connected to: {controller.identification()}")
+        controller = cls(resource, timeout_ms, logger)
+        controller.log(f"Connected to: {controller.identification()}")
         return controller
 
     def close(self):
@@ -30,7 +34,7 @@ class PNAController:
         if not catalog:
             raise RuntimeError("No active channels found on the PNA.")
         channels = [int(channel) for channel in catalog.split(",")]
-        print(f"Discovered active channels: {channels}")
+        self.log(f"Discovered active channels: {channels}")
         return channels
 
     def setup_sweep_plan(self, channel, start_freq, stop_freq, num_points,
@@ -50,9 +54,9 @@ class PNAController:
             self.resource.write(f"SENS{channel}:SWE:MODE HOLD")
             self.resource.write(f"SENS{channel}:SWE:GRO:COUN {average_factor}")
             self.resource.write(f"SENS{channel}:SWE:MODE GRO")
-            print(f"Starting {average_factor} averaged sweeps on channel {channel}...")
+            self.log(f"Starting {average_factor} averaged sweeps on channel {channel}...")
         self.resource.query("*OPC?")
-        print("Data acquisition complete.")
+        self.log("Data acquisition complete.")
 
     def save_files_for_task(self, base_dir, task, active_channels, channel_cal_map):
         timestamp = time.strftime("%Y%m%d")
@@ -65,17 +69,17 @@ class PNAController:
 
         for channel in active_channels:
             if channel not in channel_cal_map:
-                print(f"Warning: Channel {channel} has no calibration mapping; skipping.")
+                self.log(f"Warning: Channel {channel} has no calibration mapping; skipping.")
                 continue
             catalog = self.resource.query(f"CALC{channel}:PAR:CAT?").strip().strip('"')
             if not catalog:
-                print(f"Warning: Channel {channel} has no measurements; skipping.")
+                self.log(f"Warning: Channel {channel} has no measurements; skipping.")
                 continue
             measurement = catalog.split(",")[0]
             self.resource.write(f"CALC{channel}:PAR:SEL '{measurement}'")
             subfolder = task["subfolders"].get(channel)
             if not subfolder:
-                print(f"Warning: No subfolder for channel {channel}; skipping.")
+                self.log(f"Warning: No subfolder for channel {channel}; skipping.")
                 continue
 
             data_folder = os.path.join(base_dir, subfolder)
@@ -88,7 +92,7 @@ class PNAController:
                 )
                 path_on_pna = os.path.join(data_folder, filename)
                 command = f"calculate{channel}:data:snp:ports:save '{port_list}', '{path_on_pna}'"
-                print(f"Ch {channel}: saving ports {port_list} to '{path_on_pna}'")
+                self.log(f"Ch {channel}: saving ports {port_list} to '{path_on_pna}'")
                 self.resource.write(command)
         self.resource.query("*OPC?")
 
@@ -102,6 +106,7 @@ class PNAController:
                  average_factor, prompt_callback=None):
         channels = self.discover_active_channels()
         for task in plan:
+            self.log(f"Starting task: {task['description']}")
             for subfolder in set(task["subfolders"].values()):
                 os.makedirs(os.path.join(pc_base_dir, subfolder), exist_ok=True)
             prompt = f"{task['prompt']}. Press OK to continue..."
@@ -112,4 +117,5 @@ class PNAController:
             self.perform_averaged_sweep(channels, average_factor)
             self.save_files_for_task(pna_base_dir, task, channels, channel_cal_map)
             self.reset_state(channels)
+            self.log(f"Completed task: {task['description']}")
         return channels

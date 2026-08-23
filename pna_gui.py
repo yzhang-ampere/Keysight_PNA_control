@@ -65,6 +65,10 @@ def main():
     calibration_editor = add_plan_editor("Calibration verification plan (JSON)", CAL_VERIFICATION_PLAN)
     raw_editor = add_plan_editor("Raw measurement plan (JSON)", RAW_MEASUREMENT_PLAN)
 
+    ttk.Label(root, text="Progress log").pack(anchor="w", padx=10)
+    log_text = tk.Text(root, height=8, width=120, state="disabled", wrap="word")
+    log_text.pack(fill="both", expand=True, padx=10, pady=(0, 8))
+
     controls = ttk.Frame(root, padding=10)
     controls.pack(fill="x")
     ttk.Label(controls, text="Run:").pack(side="left")
@@ -75,6 +79,8 @@ def main():
     ).pack(side="left", padx=8)
     status = tk.StringVar(value="Ready")
     ttk.Label(controls, textvariable=status).pack(side="left", padx=15)
+    progress = ttk.Progressbar(controls, mode="indeterminate", length=180)
+    progress.pack(side="left", padx=8)
     events = queue.Queue()
 
     def prompt_callback(message, event):
@@ -87,6 +93,11 @@ def main():
                 event_type, *payload = events.get_nowait()
                 if event_type == "status":
                     status.set(payload[0])
+                elif event_type == "log":
+                    log_text.config(state="normal")
+                    log_text.insert("end", payload[0] + "\n")
+                    log_text.see("end")
+                    log_text.config(state="disabled")
                 elif event_type == "prompt":
                     message, event = payload
                     prompt_callback(message, event)
@@ -96,6 +107,7 @@ def main():
                 elif event_type == "finished":
                     if payload[0]:
                         status.set("Completed successfully")
+                    progress.stop()
                     start_button.config(state="normal")
         except queue.Empty:
             pass
@@ -125,13 +137,21 @@ def main():
             plans.append(raw_plan)
 
         start_button.config(state="disabled")
+        progress.start(10)
+        log_text.config(state="normal")
+        log_text.delete("1.0", "end")
+        log_text.config(state="disabled")
 
         def worker():
             controller = None
             succeeded = False
             try:
                 events.put(("status", "Connecting to PNA..."))
-                controller = PNAController.connect(visa_address, timeout)
+                controller = PNAController.connect(
+                    visa_address,
+                    timeout,
+                    logger=lambda message: events.put(("log", message)),
+                )
                 for plan in plans:
                     events.put(("status", "Running measurement plan..."))
                     controller.run_plan(
@@ -144,6 +164,7 @@ def main():
                     )
                 succeeded = True
             except Exception as error:
+                events.put(("log", f"ERROR: {error}"))
                 events.put(("error", str(error)))
             finally:
                 if controller:
