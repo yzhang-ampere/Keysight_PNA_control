@@ -4,6 +4,10 @@ import os
 import time
 
 
+class MeasurementCancelled(Exception):
+    """Raised when the user cancels a measurement plan."""
+
+
 class PNAController:
     def __init__(self, resource, timeout_ms=1_000_000, logger=print):
         self.resource = resource
@@ -103,17 +107,22 @@ class PNAController:
         self.resource.query("*OPC?")
 
     def run_plan(self, pna_base_dir, pc_base_dir, plan, channel_cal_map,
-                 average_factor, prompt_callback=None):
+                 average_factor, prompt_callback=None, stop_event=None):
         channels = self.discover_active_channels()
         for task in plan:
+            if stop_event and stop_event.is_set():
+                raise MeasurementCancelled("Measurement cancelled by user.")
             self.log(f"Starting task: {task['description']}")
             for subfolder in set(task["subfolders"].values()):
                 os.makedirs(os.path.join(pc_base_dir, subfolder), exist_ok=True)
             prompt = f"{task['prompt']}. Press OK to continue..."
             if prompt_callback:
-                prompt_callback(prompt)
+                if prompt_callback(prompt) is False:
+                    raise MeasurementCancelled("Measurement cancelled by user.")
             else:
                 input(f"--> ACTION: {prompt}")
+            if stop_event and stop_event.is_set():
+                raise MeasurementCancelled("Measurement cancelled by user.")
             self.perform_averaged_sweep(channels, average_factor)
             self.save_files_for_task(pna_base_dir, task, channels, channel_cal_map)
             self.reset_state(channels)

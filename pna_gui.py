@@ -16,7 +16,7 @@ from pna_config import (
     TIMEOUT_MS,
     VISA_ADDRESS,
 )
-from pna_controller import PNAController
+from pna_controller import MeasurementCancelled, PNAController
 
 
 def _normalize_plan(widget):
@@ -82,12 +82,40 @@ def main():
     progress = ttk.Progressbar(controls, mode="indeterminate", length=180)
     progress.pack(side="left", padx=8)
     events = queue.Queue()
+    cancel_event = threading.Event()
+    running = False
+    closing_requested = False
+    prompt_dialog = None
+    prompt_cancel = None
 
-    def prompt_callback(message, event):
-        messagebox.showinfo("Measurement action required", message, parent=root)
-        event.set()
+    def prompt_callback(message, event, result):
+        nonlocal prompt_dialog, prompt_cancel
+        dialog = tk.Toplevel(root)
+        prompt_dialog = dialog
+        dialog.title("Measurement action required")
+        dialog.transient(root)
+        dialog.grab_set()
+        ttk.Label(dialog, text=message, wraplength=500, padding=20).pack()
+
+        def finish(continue_measurement):
+            nonlocal prompt_dialog
+            result["continue"] = continue_measurement
+            if dialog.winfo_exists():
+                dialog.grab_release()
+                dialog.destroy()
+            prompt_dialog = None
+            prompt_cancel = None
+            event.set()
+
+        buttons = ttk.Frame(dialog, padding=(10, 0, 10, 10))
+        buttons.pack()
+        ttk.Button(buttons, text="Continue", command=lambda: finish(True)).pack(side="left", padx=5)
+        ttk.Button(buttons, text="Cancel", command=lambda: finish(False)).pack(side="left", padx=5)
+        dialog.protocol("WM_DELETE_WINDOW", lambda: finish(False))
+        prompt_cancel = lambda: finish(False)
 
     def poll_events():
+        nonlocal running, prompt_dialog
         try:
             while True:
                 event_type, *payload = events.get_nowait()
@@ -99,21 +127,27 @@ def main():
                     log_text.see("end")
                     log_text.config(state="disabled")
                 elif event_type == "prompt":
-                    message, event = payload
-                    prompt_callback(message, event)
+                    message, event, result = payload
+                    prompt_callback(message, event, result)
                 elif event_type == "error":
                     status.set("Failed")
                     messagebox.showerror("Measurement error", payload[0], parent=root)
+                elif event_type == "cancelled":
+                    status.set("Cancelled")
                 elif event_type == "finished":
+                    running = False
                     if payload[0]:
                         status.set("Completed successfully")
                     progress.stop()
                     start_button.config(state="normal")
+                    if closing_requested:
+                        root.destroy()
         except queue.Empty:
             pass
         root.after(100, poll_events)
 
     def start():
+        nonlocal running
         try:
             channel_map = {
                 int(channel): value
@@ -137,6 +171,8 @@ def main():
             plans.append(raw_plan)
 
         start_button.config(state="disabled")
+        cancel_event.clear()
+        running = True
         progress.start(10)
         log_text.config(state="normal")
         log_text.delete("1.0", "end")
@@ -161,8 +197,12 @@ def main():
                         channel_map,
                         average_factor,
                         _wait_for_prompt,
+                        cancel_event,
                     )
                 succeeded = True
+            except MeasurementCancelled as error:
+                events.put(("log", str(error)))
+                events.put(("cancelled",))
             except Exception as error:
                 events.put(("log", f"ERROR: {error}"))
                 events.put(("error", str(error)))
@@ -175,12 +215,33 @@ def main():
 
     def _wait_for_prompt(message):
         event = threading.Event()
-        events.put(("prompt", message, event))
+        result = {"continue": False}
+        events.put(("prompt", message, event, result))
         event.wait()
+        return result["continue"]
+
+    def close_window():
+        nonlocal closing_requested
+        if running:
+            closing_requested = True
+            cancel_event.set()
+            if prompt_cancel:
+                prompt_cancel()
+            status.set("Cancelling...")
+        else:
+            root.destroy()
+
+    def cancel_run():
+        if running:
+            cancel_event.set()
+            if prompt_cancel:
+                prompt_cancel()
+            status.set("Cancelling...")
 
     start_button = ttk.Button(controls, text="Start", command=start)
     start_button.pack(side="right")
-    ttk.Button(controls, text="Quit", command=root.destroy).pack(side="right", padx=8)
+    ttk.Button(controls, text="Cancel", command=cancel_run).pack(side="right", padx=8)
+    root.protocol("WM_DELETE_WINDOW", close_window)
     root.after(100, poll_events)
     root.mainloop()
 
