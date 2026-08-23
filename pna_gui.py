@@ -150,6 +150,8 @@ def main():
                     controller.close()
                 events.put(("finished", succeeded))
 
+        threading.Thread(target=worker, daemon=True).start()
+
     def _wait_for_prompt(message):
         event = threading.Event()
         events.put(("prompt", message, event))
