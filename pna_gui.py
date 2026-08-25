@@ -241,6 +241,7 @@ def main():
     start_button = ttk.Button(controls, text="Start", command=start)
     start_button.pack(side="right")
     ttk.Button(controls, text="Cancel", command=cancel_run).pack(side="right", padx=8)
+    ttk.Button(controls, text="Close", command=close_window).pack(side="right", padx=8)
     root.protocol("WM_DELETE_WINDOW", close_window)
     root.after(100, poll_events)
     root.mainloop()
