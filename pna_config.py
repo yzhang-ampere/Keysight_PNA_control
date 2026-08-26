@@ -17,11 +17,12 @@ CHANNEL_CAL_STATUS_MAP = {
 }
 
 CONFIG_DIR = Path(__file__).resolve().parent
+PLANS_DIR = CONFIG_DIR / "plans"
 
 
 def load_plan(filename):
     """Load and minimally validate a measurement plan from YAML."""
-    path = CONFIG_DIR / filename
+    path = PLANS_DIR / filename
     with path.open("r", encoding="utf-8") as stream:
         plan = yaml.safe_load(stream)
     if not isinstance(plan, list):
