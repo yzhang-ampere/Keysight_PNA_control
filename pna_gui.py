@@ -5,7 +5,9 @@ import copy
 import queue
 import threading
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
+
+import yaml
 
 from pna_config import (
     AVERAGING_FACTOR,
@@ -77,6 +79,7 @@ class PlanEditor(ttk.LabelFrame):
         ttk.Entry(self, textvariable=self.subfolders, width=75).grid(row=5, column=1, columnspan=3, sticky="ew")
         ttk.Button(self, text="Add task", command=self._add_task).grid(row=6, column=1, sticky="w", pady=10)
         ttk.Button(self, text="Remove task", command=self._remove_task).grid(row=6, column=2, sticky="w", pady=10)
+        ttk.Button(self, text="Load YAML...", command=self._load_yaml).grid(row=6, column=3, sticky="e", pady=10)
 
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=1)
@@ -188,6 +191,43 @@ class PlanEditor(ttk.LabelFrame):
         if self.plan:
             self.task_list.selection_set(0)
             self._load_task(0)
+
+    def _load_yaml(self):
+        path = filedialog.askopenfilename(
+            parent=self,
+            title="Load measurement plan",
+            filetypes=(("YAML files", "*.yml *.yaml"), ("All files", "*.*")),
+        )
+        if not path:
+            return
+        try:
+            with open(path, "r", encoding="utf-8") as stream:
+                plan = yaml.safe_load(stream)
+            if not isinstance(plan, list):
+                raise ValueError("The YAML root must be a list of tasks.")
+            for index, task in enumerate(plan, start=1):
+                if not isinstance(task, dict):
+                    raise ValueError(f"Task {index} must be a mapping.")
+                for required in ("description", "prompt", "port_combinations", "subfolders"):
+                    if required not in task:
+                        raise ValueError(f"Task {index} is missing '{required}'.")
+                task["subfolders"] = {
+                    int(channel): folder
+                    for channel, folder in task["subfolders"].items()
+                }
+                for combination in task["port_combinations"]:
+                    if (not isinstance(combination, dict)
+                            or not combination.get("ports")
+                            or not combination.get("base_name")):
+                        raise ValueError(f"Task {index} contains an invalid port combination.")
+            self.plan = plan
+            self.selected_index = None
+            self._refresh_tasks()
+            if self.plan:
+                self.task_list.selection_set(0)
+                self._load_task(0)
+        except (OSError, TypeError, ValueError, yaml.YAMLError) as error:
+            messagebox.showerror("Could not load YAML", str(error), parent=self)
 
     def get_plan(self):
         if self.selected_index is not None:
