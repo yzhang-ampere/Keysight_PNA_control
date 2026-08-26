@@ -1,0 +1,80 @@
+# Calibration verification tasks.
+# Each task is followed by one averaged sweep, then all port combinations
+# listed below are saved from that same sweep.
+- description: Port 1 and 2 thru
+  prompt: Connect port 1 and 2 through adapters
+  base_name: port1_unknownThru_port2
+  port_combinations:
+    - ports: [1, 2]
+      base_name: port1_unknownThru_port2
+  subfolders:
+    1: verify_probe_calibration
+    2: fixture
+
+- description: Port 1 and 3 thru
+  prompt: Connect port 1 and 3 through adapters
+  base_name: port1_unknownThru_port3
+  port_combinations:
+    - ports: [1, 3]
+      base_name: port1_unknownThru_port3
+  subfolders:
+    1: verify_probe_calibration
+    2: fixture
+
+- description: Port 3 and 4 thru
+  prompt: Connect port 3 and 4 through adapters
+  base_name: port3_unknownThru_port4
+  port_combinations:
+    - ports: [3, 4]
+      base_name: port3_unknownThru_port4
+  subfolders:
+    1: verify_probe_calibration
+    2: fixture
+
+- description: Probe [1, 3] in air
+  prompt: Keep the probe in the air
+  base_name: openAir
+  port_combinations:
+    - ports: [1]
+      base_name: port1_openAir
+    - ports: [3]
+      base_name: port3_openAir
+  subfolders:
+    1: verify_probe_calibration
+    2: fixture
+
+- description: Probe [1, 3] on substrate OPEN
+  prompt: Touch the OPEN standard on the calibration substrate
+  base_name: open
+  port_combinations:
+    - ports: [1]
+      base_name: port1_open
+    - ports: [3]
+      base_name: port3_open
+  subfolders:
+    1: verify_probe_calibration
+    2: fixture
+
+- description: Probe [1, 3] on substrate SHORT
+  prompt: Touch the SHORT standard on the calibration substrate
+  base_name: short
+  port_combinations:
+    - ports: [1]
+      base_name: port1_short
+    - ports: [3]
+      base_name: port3_short
+  subfolders:
+    1: verify_probe_calibration
+    2: fixture
+
+- description: Probe [1, 3] on substrate LOAD
+  prompt: Touch the LOAD standard on the calibration substrate
+  base_name: load
+  port_combinations:
+    - ports: [1]
+      base_name: port1_load
+    - ports: [3]
+      base_name: port3_load
+  subfolders:
+    1: verify_probe_calibration
+    2: fixture

@@ -1,4 +1,8 @@
-"""Shared defaults and measurement plans for the PNA applications."""
+"""Shared defaults and YAML-backed measurement plans."""
+
+from pathlib import Path
+
+import yaml
 
 PNA_BASE_DIRECTORY = r"D:\PSIG_remote_share_folder\temp_autosave_data"
 PC_BASE_DIRECTORY = r"Z:\temp_autosave_data"
@@ -12,72 +16,27 @@ CHANNEL_CAL_STATUS_MAP = {
     3: "calToCableDeembedProbe",
 }
 
-
-def _single_port_standards(name, ports=(1, 3)):
-    return [
-        {"ports": [port], "base_name": f"port{port}_{name}"}
-        for port in ports
-    ]
+CONFIG_DIR = Path(__file__).resolve().parent
 
 
-CAL_VERIFICATION_PLAN = [
-    {
-        "description": "Port 1 and 2 thru",
-        "prompt": "Connect port 1 and 2 through adapters",
-        "base_name": "port1_unknownThru_port2",
-        "port_combinations": [{"ports": [1, 2], "base_name": "port1_unknownThru_port2"}],
-        "subfolders": {1: "verify_probe_calibration", 2: "fixture"},
-    },
-    {
-        "description": "Port 1 and 3 thru",
-        "prompt": "Connect port 1 and 3 through adapters",
-        "base_name": "port1_unknownThru_port3",
-        "port_combinations": [{"ports": [1, 3], "base_name": "port1_unknownThru_port3"}],
-        "subfolders": {1: "verify_probe_calibration", 2: "fixture"},
-    },
-    {
-        "description": "Port 3 and 4 thru",
-        "prompt": "Connect port 3 and 4 through adapters",
-        "base_name": "port3_unknownThru_port4",
-        "port_combinations": [{"ports": [3, 4], "base_name": "port3_unknownThru_port4"}],
-        "subfolders": {1: "verify_probe_calibration", 2: "fixture"},
-    },
-]
-
-for standard, prompt in (
-    ("openAir", "Keep the probe in the air"),
-    ("open", "Touch the OPEN standard on the calibration substrate"),
-    ("short", "Touch the SHORT standard on the calibration substrate"),
-    ("load", "Touch the LOAD standard on the calibration substrate"),
-):
-    CAL_VERIFICATION_PLAN.append({
-        "description": f"Probe [1, 3] on {standard}",
-        "prompt": prompt,
-        "base_name": standard,
-        "port_combinations": _single_port_standards(standard),
-        "subfolders": {1: "verify_probe_calibration", 2: "fixture"},
-    })
+def load_plan(filename):
+    """Load and minimally validate a measurement plan from YAML."""
+    path = CONFIG_DIR / filename
+    with path.open("r", encoding="utf-8") as stream:
+        plan = yaml.safe_load(stream)
+    if not isinstance(plan, list):
+        raise ValueError(f"Plan file {path} must contain a YAML list.")
+    for index, task in enumerate(plan, start=1):
+        if not isinstance(task, dict):
+            raise ValueError(f"Task {index} in {path} must be a YAML mapping.")
+        for required in ("description", "prompt", "port_combinations", "subfolders"):
+            if required not in task:
+                raise ValueError(f"Task {index} in {path} is missing '{required}'.")
+        task["subfolders"] = {
+            int(channel): folder for channel, folder in task["subfolders"].items()
+        }
+    return plan
 
 
-RAW_MEASUREMENT_PLAN = [
-    {
-        "description": "Measure 2xThru of DDR5_10_DQS_A_4 on PCB1",
-        "prompt": "Connect the PCB1 N and P 2xThru paths to ports 1-2 and 3-4",
-        "base_name": "2xThur_DDR5_10_DQS_A_4_pcb1",
-        "port_combinations": [
-            {"ports": [1, 2], "base_name": "2xThur_DDR5_10_DQS_A_4_pcb1_N"},
-            {"ports": [3, 4], "base_name": "2xThur_DDR5_10_DQS_A_4_pcb1_P"},
-        ],
-        "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"},
-    },
-    {
-        "description": "Measure 2xThru of DDR5_10_DQS_A_4 on PCB2",
-        "prompt": "Connect the PCB2 N and P 2xThru paths to ports 1-2 and 3-4",
-        "base_name": "2xThur_DDR5_10_DQS_A_4_pcb2",
-        "port_combinations": [
-            {"ports": [1, 2], "base_name": "2xThur_DDR5_10_DQS_A_4_pcb2_N"},
-            {"ports": [3, 4], "base_name": "2xThur_DDR5_10_DQS_A_4_pcb2_P"},
-        ],
-        "subfolders": {1: "fixture", 2: "raw_measure", 3: "raw_measure"},
-    },
-]
+CAL_VERIFICATION_PLAN = load_plan("calibration_plan.yml")
+RAW_MEASUREMENT_PLAN = load_plan("raw_measurement_plan.yml")
