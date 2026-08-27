@@ -110,6 +110,9 @@ class PNAController:
                  average_factor, prompt_callback=None, stop_event=None):
         channels = self.discover_active_channels()
         for task in plan:
+            if task.get("finished", False):
+                self.log(f"Skipping finished task: {task['description']}")
+                continue
             if stop_event and stop_event.is_set():
                 raise MeasurementCancelled("Measurement cancelled by user.")
             self.log(f"Starting task: {task['description']}")
@@ -126,5 +129,6 @@ class PNAController:
             self.perform_averaged_sweep(channels, average_factor)
             self.save_files_for_task(pna_base_dir, task, channels, channel_cal_map)
             self.reset_state(channels)
+            task["finished"] = True
             self.log(f"Completed task: {task['description']}")
         return channels

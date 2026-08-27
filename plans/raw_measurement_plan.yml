@@ -1,5 +1,6 @@
 # Raw DUT measurement tasks.
 - description: Measure 2xThru of DDR5_10_DQS_A_4 on PCB1
+  finished: false
   prompt: Connect the PCB1 N and P 2xThru paths to ports 1-2 and 3-4
   base_name: 2xThur_DDR5_10_DQS_A_4_pcb1
   port_combinations:
@@ -7,6 +8,7 @@
     - {ports: [3, 4], base_name: 2xThur_DDR5_10_DQS_A_4_pcb1_P}
   subfolders: {1: fixture, 2: raw_measure, 3: raw_measure}
 - description: Measure 2xThru of DDR5_10_DQS_A_4 on PCB2
+  finished: false
   prompt: Connect the PCB2 N and P 2xThru paths to ports 1-2 and 3-4
   base_name: 2xThur_DDR5_10_DQS_A_4_pcb2
   port_combinations:

@@ -36,6 +36,7 @@ def load_plan(filename):
         task["subfolders"] = {
             int(channel): folder for channel, folder in task["subfolders"].items()
         }
+        task["finished"] = bool(task.get("finished", False))
     return plan
 
 

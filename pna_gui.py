@@ -45,6 +45,7 @@ class PlanEditor(ttk.LabelFrame):
         self.description = tk.StringVar()
         self.prompt = tk.StringVar()
         self.base_name = tk.StringVar()
+        self.finished = tk.BooleanVar(value=False)
         for row, (label, variable) in enumerate((
             ("Description", self.description),
             ("User prompt", self.prompt),
@@ -53,6 +54,9 @@ class PlanEditor(ttk.LabelFrame):
             ttk.Label(fields, text=label).grid(row=row, column=0, sticky="w", pady=2)
             ttk.Entry(fields, textvariable=variable, width=75).grid(row=row, column=1, sticky="ew", pady=2)
         fields.columnconfigure(1, weight=1)
+        ttk.Checkbutton(fields, text="Finished (skip this task)", variable=self.finished).grid(
+            row=3, column=1, sticky="w", pady=2
+        )
 
         ttk.Label(self, text="Port combinations").grid(row=1, column=1, columnspan=3, sticky="w", pady=(10, 2))
         self.combinations = ttk.Treeview(self, columns=("ports", "base_name"), show="headings", height=5)
@@ -89,7 +93,8 @@ class PlanEditor(ttk.LabelFrame):
     def _refresh_tasks(self):
         self.task_list.delete(0, "end")
         for task in self.plan:
-            self.task_list.insert("end", task.get("description", "Unnamed task"))
+            marker = "[finished] " if task.get("finished", False) else ""
+            self.task_list.insert("end", marker + task.get("description", "Unnamed task"))
 
     def _task_selected(self, _event=None):
         selection = self.task_list.curselection()
@@ -106,6 +111,7 @@ class PlanEditor(ttk.LabelFrame):
         self.description.set(task.get("description", ""))
         self.prompt.set(task.get("prompt", ""))
         self.base_name.set(task.get("base_name", ""))
+        self.finished.set(bool(task.get("finished", False)))
         subfolders = task.get("subfolders", {})
         self.subfolders.set("; ".join(f"{channel}={folder}" for channel, folder in sorted(subfolders.items())))
         self.combinations.delete(*self.combinations.get_children())
@@ -121,6 +127,7 @@ class PlanEditor(ttk.LabelFrame):
         task["description"] = self.description.get().strip()
         task["prompt"] = self.prompt.get().strip()
         task["base_name"] = self.base_name.get().strip()
+        task["finished"] = self.finished.get()
         subfolders = {}
         for item in self.subfolders.get().split(";"):
             item = item.strip()
@@ -173,6 +180,7 @@ class PlanEditor(ttk.LabelFrame):
             "description": "New measurement task",
             "prompt": "",
             "base_name": "new_measurement",
+            "finished": False,
             "port_combinations": [],
             "subfolders": {},
         })
@@ -220,6 +228,7 @@ class PlanEditor(ttk.LabelFrame):
                             or not combination.get("ports")
                             or not combination.get("base_name")):
                         raise ValueError(f"Task {index} contains an invalid port combination.")
+                task["finished"] = bool(task.get("finished", False))
             self.plan = plan
             self.selected_index = None
             self._refresh_tasks()
@@ -294,14 +303,12 @@ def main():
         prompt_dialog = dialog
         dialog.title("Measurement action required")
         dialog.transient(root)
-        dialog.grab_set()
         ttk.Label(dialog, text=message, wraplength=500, padding=20).pack()
 
         def finish(continue_measurement):
             nonlocal prompt_dialog
             result["continue"] = continue_measurement
             if dialog.winfo_exists():
-                dialog.grab_release()
                 dialog.destroy()
             prompt_dialog = None
             prompt_cancel = None
