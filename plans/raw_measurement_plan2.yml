@@ -1,0 +1,92 @@
+# Raw DUT measurement tasks.
+- description: fixture + DUT, DDR5_7_CB_A_5_7
+  finished: false
+  prompt: " cable 1 <-- DDR5_7_CB_A_5 --> cable 2 \n cable 3 <-- DDR5_7_CB_A_7 --> cable4"
+  base_name: DDR5_7_CB_A_5_7
+  port_combinations:
+    - {ports: [1, 2], base_name: DDR5_7_CB_A_5}
+    - {ports: [3, 4], base_name: DDR5_7_CB_A_7}
+    - {ports: [1, 2, 3, 4], base_name: DDR5_7_CB_A_5_7}
+  subfolders: {1: raw_measure, 2: raw_measure, 3: raw_measure}
+
+- description: fixture + DUT, PCIERC0_MXIO_RX_8
+  finished: false
+  prompt: " cable 1 <-- PCIERC0_MXIO_RX_8_N --> cable 2 \n cable 3 <-- PCIERC0_MXIO_RX_8_P --> cable4"
+  base_name: PCIERC0_MXIO_RX_8
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIERC0_MXIO_RX_8_N}
+    - {ports: [3, 4], base_name: PCIERC0_MXIO_RX_8_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIERC0_MXIO_RX_8}
+  subfolders: {1: raw_measure, 2: raw_measure, 3: raw_measure}
+
+- description: fixture + DUT, DDR5_7_DATA_B_21_23
+  finished: false
+  prompt: " cable 1 <-- DDR5_7_DATA_B_21 --> cable 2 \n cable 3 <-- DDR5_7_DATA_B_23 --> cable4"
+  base_name: DDR5_7_DATA_B_21_23
+  port_combinations:
+    - {ports: [1, 2], base_name: DDR5_7_DATA_B_21}
+    - {ports: [3, 4], base_name: DDR5_7_DATA_B_23}
+    - {ports: [1, 2, 3, 4], base_name: DDR5_7_DATA_B_21_23}
+  subfolders: {1: raw_measure, 2: raw_measure, 3: raw_measure}
+
+# 2x Thru fixtures on the TOP PCB
+- description: 2xThru TOP DDR5_7_CB_A_5_7
+  finished: false
+  prompt: " cable 1 <-- TOP PCB 2xThru DDR5_7_CB_A_5 --> cable 2 \n cable 3 <-- TOP PCB 2xThru DDR5_7_CB_A_7 --> cable4"
+  base_name: 2xThru_PCB_TOP_DDR5_7_CB_A_5_7
+  port_combinations:
+    - {ports: [1, 2], base_name: 2xThru_PCB_TOP_DDR5_7_CB_A_5}
+    - {ports: [3, 4], base_name: 2xThru_PCB_TOP_DDR5_7_CB_A_7}
+    - {ports: [1, 2, 3, 4], base_name: 2xThru_PCB_TOP_DDR5_7_CB_A_5_7}
+  subfolders: {1: fixture, 2: raw_measure, 3: raw_measure}
+
+- description: 2xThru TOP PCIERC0_MXIO_RX_8
+  finished: false
+  prompt: " cable 1 <-- TOP PCB 2xThru PCIERC0_MXIO_RX_8_N --> cable 2 \n cable 3 <-- TOP PCB 2xThru PCIERC0_MXIO_RX_8_P --> cable4"
+  base_name: 2xThru_PCB_TOP_PCIERC0_MXIO_RX_8
+  port_combinations:
+    - {ports: [1, 2], base_name: 2xThru_PCB_TOP_PCIERC0_MXIO_RX_8_N}
+    - {ports: [3, 4], base_name: 2xThru_PCB_TOP_PCIERC0_MXIO_RX_8_P}
+    - {ports: [1, 2, 3, 4], base_name: 2xThru_PCB_TOP_PCIERC0_MXIO_RX_8}
+  subfolders: {1: fixture, 2: raw_measure, 3: raw_measure}
+
+- description: 2xThru TOP DDR5_7_DATA_B_21_23
+  finished: false
+  prompt: " cable 1 <-- TOP PCB 2xThru DDR5_7_DATA_B_21 --> cable 2 \n cable 3 <-- TOP PCB 2xThru DDR5_7_DATA_B_23 --> cable4"
+  base_name: 2xThru_PCB_TOP_DDR5_7_DATA_B_21_23
+  port_combinations:
+    - {ports: [1, 2], base_name: 2xThru_PCB_TOP_DDR5_7_DATA_B_21}
+    - {ports: [3, 4], base_name: 2xThru_PCB_TOP_DDR5_7_DATA_B_23}
+    - {ports: [1, 2, 3, 4], base_name: 2xThru_PCB_TOP_DDR5_7_DATA_B_21_23}
+  subfolders: {1: fixture, 2: raw_measure, 3: raw_measure}
+
+# 2x Thru fixtures on the BOTTOM PCB
+- description: 2xThru BOTTOM DDR5_7_CB_A_5_7
+  finished: false
+  prompt: " cable 1 <-- BOTTOM PCB 2xThru DDR5_7_CB_A_5 --> cable 2 \n cable 3 <-- BOTTOM PCB 2xThru DDR5_7_CB_A_7 --> cable4"
+  base_name: 2xThru_PCB_BOTTOM_DDR5_7_CB_A_5_7
+  port_combinations:
+    - {ports: [1, 2], base_name: 2xThru_PCB_BOTTOM_DDR5_7_CB_A_5}
+    - {ports: [3, 4], base_name: 2xThru_PCB_BOTTOM_DDR5_7_CB_A_7}
+    - {ports: [1, 2, 3, 4], base_name: 2xThru_PCB_BOTTOM_DDR5_7_CB_A_5_7}
+  subfolders: {1: fixture, 2: raw_measure, 3: raw_measure}
+
+- description: 2xThru BOTTOM PCIERC0_MXIO_RX_8
+  finished: false
+  prompt: " cable 1 <-- BOTTOM PCB 2xThru PCIERC0_MXIO_RX_8_N --> cable 2 \n cable 3 <-- BOTTOM PCB 2xThru PCIERC0_MXIO_RX_8_P --> cable4"
+  base_name: 2xThru_PCB_BOTTOM_PCIERC0_MXIO_RX_8
+  port_combinations:
+    - {ports: [1, 2], base_name: 2xThru_PCB_BOTTOM_PCIERC0_MXIO_RX_8_N}
+    - {ports: [3, 4], base_name: 2xThru_PCB_BOTTOM_PCIERC0_MXIO_RX_8_P}
+    - {ports: [1, 2, 3, 4], base_name: 2xThru_PCB_BOTTOM_PCIERC0_MXIO_RX_8}
+  subfolders: {1: fixture, 2: raw_measure, 3: raw_measure}
+
+- description: 2xThru BOTTOM DDR5_7_DATA_B_21_23
+  finished: false
+  prompt: " cable 1 <-- BOTTOM PCB 2xThru DDR5_7_DATA_B_21 --> cable 2 \n cable 3 <-- BOTTOM PCB 2xThru DDR5_7_DATA_B_23 --> cable4"
+  base_name: 2xThru_PCB_BOTTOM_DDR5_7_DATA_B_21_23
+  port_combinations:
+    - {ports: [1, 2], base_name: 2xThru_PCB_BOTTOM_DDR5_7_DATA_B_21}
+    - {ports: [3, 4], base_name: 2xThru_PCB_BOTTOM_DDR5_7_DATA_B_23}
+    - {ports: [1, 2, 3, 4], base_name: 2xThru_PCB_BOTTOM_DDR5_7_DATA_B_21_23}
+  subfolders: {1: fixture, 2: raw_measure, 3: raw_measure}
