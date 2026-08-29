@@ -5,7 +5,7 @@ import copy
 import queue
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, font as tkfont, messagebox, ttk
 
 import yaml
 
@@ -39,6 +39,9 @@ class PlanEditor(ttk.LabelFrame):
         self.task_list = tk.Listbox(self, width=38, height=16, exportselection=False)
         self.task_list.grid(row=0, column=0, rowspan=8, sticky="nsew", padx=(0, 8))
         self.task_list.bind("<<ListboxSelect>>", self._task_selected)
+        task_scroll = ttk.Scrollbar(self, orient="horizontal", command=self.task_list.xview)
+        task_scroll.grid(row=8, column=0, sticky="ew", padx=(0, 8))
+        self.task_list.configure(xscrollcommand=task_scroll.set)
 
         fields = ttk.Frame(self)
         fields.grid(row=0, column=1, columnspan=3, sticky="ew")
@@ -90,6 +93,7 @@ class PlanEditor(ttk.LabelFrame):
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=1)
         self.columnconfigure(3, weight=1)
+        self.columnconfigure(0, weight=1)
         self.rowconfigure(2, weight=1)
 
     def _refresh_tasks(self):
@@ -274,7 +278,7 @@ class PlanEditor(ttk.LabelFrame):
 def main():
     root = tk.Tk()
     root.title("Keysight PNA Measurement")
-    root.geometry("1050x850")
+    root.geometry("1050x950")
 
     form = ttk.Frame(root, padding=10)
     form.pack(fill="x")
@@ -327,13 +331,18 @@ def main():
         prompt_dialog = dialog
         dialog.title("Measurement action required")
         dialog.transient(root)
+        dialog.geometry("650x240")
         dialog.resizable(True, True)
         dialog.minsize(420, 150)
-        message_label = ttk.Label(dialog, text=message, wraplength=500, padding=20)
+        prompt_font = tkfont.Font(root=dialog, size=14)
+        message_label = ttk.Label(dialog, text=message, font=prompt_font, wraplength=500, padding=20)
         message_label.pack(fill="both", expand=True)
         dialog.bind(
             "<Configure>",
-            lambda event: message_label.configure(wraplength=max(300, event.width - 40)),
+            lambda event: (
+                message_label.configure(wraplength=max(300, event.width - 40)),
+                prompt_font.configure(size=max(11, min(24, event.width // 45))),
+            ),
         )
 
         def finish(continue_measurement):
