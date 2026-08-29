@@ -246,6 +246,13 @@ class PlanEditor(ttk.LabelFrame):
                 raise ValueError(f"Task {index} is incomplete.")
         return copy.deepcopy(self.plan)
 
+    def update_task_status(self, index, state):
+        if 0 <= index < len(self.plan) and state == "finished":
+            self.plan[index]["finished"] = True
+            self._refresh_tasks()
+            if self.selected_index == index:
+                self.finished.set(True)
+
 
 def main():
     root = tk.Tk()
@@ -336,6 +343,12 @@ def main():
                 elif event_type == "prompt":
                     message, event, result = payload
                     prompt_callback(message, event, result)
+                elif event_type == "task":
+                    editor, index, state, description, task_total = payload
+                    editor.update_task_status(index, state)
+                    status.set(
+                        f"{state.title()}: task {index + 1}/{task_total} - {description}"
+                    )
                 elif event_type == "error":
                     status.set("Failed")
                     messagebox.showerror("Measurement error", payload[0], parent=root)
@@ -373,9 +386,9 @@ def main():
 
         plans = []
         if mode.get() in ("Calibration verification", "Both sequentially"):
-            plans.append(calibration_plan)
+            plans.append((calibration_editor, calibration_plan))
         if mode.get() in ("Raw measurement", "Both sequentially"):
-            plans.append(raw_plan)
+            plans.append((raw_editor, raw_plan))
 
         start_button.config(state="disabled")
         cancel_event.clear()
@@ -395,7 +408,7 @@ def main():
                     timeout,
                     logger=lambda message: events.put(("log", message)),
                 )
-                for plan in plans:
+                for editor, plan in plans:
                     events.put(("status", "Running measurement plan..."))
                     controller.run_plan(
                         pna_data_directory,
@@ -405,6 +418,8 @@ def main():
                         average_factor,
                         _wait_for_prompt,
                         cancel_event,
+                        lambda index, state, description, total, editor=editor:
+                            events.put(("task", editor, index, state, description, total)),
                     )
                 succeeded = True
             except MeasurementCancelled as error:

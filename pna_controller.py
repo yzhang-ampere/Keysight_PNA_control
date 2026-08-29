@@ -107,11 +107,15 @@ class PNAController:
         self.resource.query("*OPC?")
 
     def run_plan(self, pna_base_dir, pc_base_dir, plan, channel_cal_map,
-                 average_factor, prompt_callback=None, stop_event=None):
+                 average_factor, prompt_callback=None, stop_event=None,
+                 task_callback=None):
         channels = self.discover_active_channels()
-        for task in plan:
+        total_tasks = len(plan)
+        for task_index, task in enumerate(plan):
             if task.get("finished", False):
                 self.log(f"Skipping finished task: {task['description']}")
+                if task_callback:
+                    task_callback(task_index, "skipped", task["description"], total_tasks)
                 continue
             if stop_event and stop_event.is_set():
                 raise MeasurementCancelled("Measurement cancelled by user.")
@@ -131,4 +135,6 @@ class PNAController:
             self.reset_state(channels)
             task["finished"] = True
             self.log(f"Completed task: {task['description']}")
+            if task_callback:
+                task_callback(task_index, "finished", task["description"], total_tasks)
         return channels
