@@ -84,6 +84,8 @@ class PlanEditor(ttk.LabelFrame):
         ttk.Button(self, text="Add task", command=self._add_task).grid(row=6, column=1, sticky="w", pady=10)
         ttk.Button(self, text="Remove task", command=self._remove_task).grid(row=6, column=2, sticky="w", pady=10)
         ttk.Button(self, text="Load YAML...", command=self._load_yaml).grid(row=6, column=3, sticky="e", pady=10)
+        ttk.Button(self, text="Move up", command=lambda: self._move_task(-1)).grid(row=7, column=1, sticky="w")
+        ttk.Button(self, text="Move down", command=lambda: self._move_task(1)).grid(row=7, column=2, sticky="w")
 
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=1)
@@ -200,6 +202,21 @@ class PlanEditor(ttk.LabelFrame):
             self.task_list.selection_set(0)
             self._load_task(0)
 
+    def _move_task(self, direction):
+        selection = self.task_list.curselection()
+        if not selection:
+            return
+        index = selection[0]
+        new_index = index + direction
+        if not 0 <= new_index < len(self.plan):
+            return
+        self._collect_task(index)
+        self.selected_index = None
+        self.plan[index], self.plan[new_index] = self.plan[new_index], self.plan[index]
+        self._refresh_tasks()
+        self.task_list.selection_set(new_index)
+        self._load_task(new_index)
+
     def _load_yaml(self):
         path = filedialog.askopenfilename(
             parent=self,
@@ -310,7 +327,14 @@ def main():
         prompt_dialog = dialog
         dialog.title("Measurement action required")
         dialog.transient(root)
-        ttk.Label(dialog, text=message, wraplength=500, padding=20).pack()
+        dialog.resizable(True, True)
+        dialog.minsize(420, 150)
+        message_label = ttk.Label(dialog, text=message, wraplength=500, padding=20)
+        message_label.pack(fill="both", expand=True)
+        dialog.bind(
+            "<Configure>",
+            lambda event: message_label.configure(wraplength=max(300, event.width - 40)),
+        )
 
         def finish(continue_measurement):
             nonlocal prompt_dialog
