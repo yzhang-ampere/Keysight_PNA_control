@@ -8,6 +8,7 @@ This project provides console and GUI applications for controlling a Keysight PN
 - `pna_gui.py` — graphical version.
 - `pna_controller.py` — shared PNA control class.
 - `pna_config.py` — shared connection defaults and YAML loading.
+- `config.yml` — session settings and plan-file locations.
 - `plans/calibration_plan.yml` — calibration verification tasks.
 - `plans/raw_measurement_plan.yml` — raw DUT measurement tasks.
 - `pyvisa_test.py` — backward-compatible launcher.
@@ -24,14 +25,15 @@ PyVISA also requires a VISA implementation/backend. Install the VISA backend app
 
 ## Configuration
 
-Edit the defaults in `pna_config.py`:
+Edit `config.yml` to define the session configuration:
 
-- `PNA_BASE_DIRECTORY` — directory where the PNA saves data.
-- `PC_BASE_DIRECTORY` — local/shared directory used to create matching folders.
-- `VISA_ADDRESS` — PNA VISA resource address.
-- `TIMEOUT_MS` — VISA timeout.
-- `AVERAGING_FACTOR` — number of sweeps per averaged measurement.
-- `CHANNEL_CAL_STATUS_MAP` — channel-to-calibration status mapping.
+- `pna_base_directory` — directory where the PNA saves data.
+- `pc_base_directory` — local/shared directory used to create matching folders.
+- `visa_address` — PNA VISA resource address.
+- `timeout_ms` — VISA timeout.
+- `averaging_factor` — number of sweeps per averaged measurement.
+- `channel_cal_status_map` — channel-to-calibration status mapping.
+- `plan_files` — paths to the calibration and raw plan YAML files.
 
 Measurement tasks are configured in the YAML files under `plans/`. Each task contains a prompt, output folders, and one or more port combinations:
 
@@ -51,6 +53,8 @@ Measurement tasks are configured in the YAML files under `plans/`. Each task con
 ```
 
 All listed port combinations are saved after the same averaged sweep.
+
+The GUI can load and save `config.yml`. Loading a configuration updates the connection/session fields and loads the plan files listed under `plan_files`. This makes the configuration and plan files suitable for recording the setup and progress of a lab session.
 
 ## Console execution
 
@@ -88,6 +92,9 @@ The GUI provides:
 - Calibration and raw measurement plan tabs.
 - Editable task descriptions, prompts, output names, folders, and port combinations.
 - A `Load YAML...` button for replacing a plan with another YAML file.
+- `Load config...` and `Save config...` buttons for session settings.
+- `Save YAML...` buttons for preserving edited plans and finished-task flags.
+- `Export all...` for creating a self-contained configuration bundle containing `config.yml` and both plan files.
 - A finished-task checkbox for skipping or re-measuring a task.
 - A progress log and task status display.
 - Continue, Cancel, and Close controls during measurement.

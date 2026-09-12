@@ -1,0 +1,16 @@
+# Shared PNA measurement configuration.
+# This file records the setup used for a measurement session.
+pna_base_directory: 'D:\PSIG_remote_share_folder\temp_autosave_data'
+pc_base_directory: 'Z:\temp_autosave_data'
+visa_address: 'TCPIP0::10.76.79.222::inst0::INSTR'
+timeout_ms: 1000000
+averaging_factor: 20
+
+channel_cal_status_map:
+  1: calToCable
+  2: calToProbe
+  3: calToCableDeembedProbe
+
+plan_files:
+  calibration: plans/calibration_plan.yml
+  raw: plans/raw_measurement_plan.yml
