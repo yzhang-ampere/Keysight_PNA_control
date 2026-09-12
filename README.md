@@ -29,6 +29,7 @@ Edit `config.yml` to define the session configuration:
 
 - `pna_base_directory` — directory where the PNA saves data.
 - `pc_base_directory` — local/shared directory used to create matching folders.
+- `export_directory` — directory used by the GUI's **Export all...** action.
 - `visa_address` — PNA VISA resource address.
 - `timeout_ms` — VISA timeout.
 - `averaging_factor` — number of sweeps per averaged measurement.
@@ -54,7 +55,7 @@ Measurement tasks are configured in the YAML files under `plans/`. Each task con
 
 All listed port combinations are saved after the same averaged sweep.
 
-The GUI can load and save `config.yml`. Loading a configuration updates the connection/session fields and loads the plan files listed under `plan_files`. This makes the configuration and plan files suitable for recording the setup and progress of a lab session.
+The GUI can load and save `config.yml` from arbitrary paths. Loading a configuration updates the connection/session fields and loads the plan files listed under `plan_files`. This makes the configuration and plan files suitable for recording the setup and progress of a lab session.
 
 ## Console execution
 
@@ -94,7 +95,7 @@ The GUI provides:
 - A `Load YAML...` button for replacing a plan with another YAML file.
 - `Load config...` and `Save config...` buttons for session settings.
 - `Save YAML...` buttons for preserving edited plans and finished-task flags.
-- `Export all...` for creating a self-contained configuration bundle containing `config.yml` and both plan files.
+- `Export all...` for creating a self-contained configuration bundle in the configured `export_directory`, containing `config.yml` and both plan files.
 - A finished-task checkbox for skipping or re-measuring a task.
 - A progress log and task status display.
 - Continue, Cancel, and Close controls during measurement.
