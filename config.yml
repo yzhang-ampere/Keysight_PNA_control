@@ -13,5 +13,5 @@ channel_cal_status_map:
   3: calToCableDeembedProbe
 
 plan_files:
-  calibration: plans/calibration_plan.yml
-  raw: plans/raw_measurement_plan.yml
+  calibration: configs/plans/calibration_plan.yml
+  raw: configs/plans/raw_measurement_plan.yml
