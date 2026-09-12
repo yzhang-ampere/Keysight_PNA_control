@@ -41,6 +41,7 @@ def load_plan(filename):
 CONFIGURATION = load_configuration()
 PNA_BASE_DIRECTORY = CONFIGURATION["pna_base_directory"]
 PC_BASE_DIRECTORY = CONFIGURATION["pc_base_directory"]
+EXPORT_DIRECTORY = CONFIGURATION.get("export_directory", "exports")
 VISA_ADDRESS = CONFIGURATION["visa_address"]
 TIMEOUT_MS = int(CONFIGURATION["timeout_ms"])
 AVERAGING_FACTOR = int(CONFIGURATION["averaging_factor"])

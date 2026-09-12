@@ -2,6 +2,7 @@
 # This file records the setup used for a measurement session.
 pna_base_directory: 'D:\PSIG_remote_share_folder\temp_autosave_data'
 pc_base_directory: 'Z:\temp_autosave_data'
+export_directory: 'exports'
 visa_address: 'TCPIP0::10.76.79.222::inst0::INSTR'
 timeout_ms: 1000000
 averaging_factor: 20

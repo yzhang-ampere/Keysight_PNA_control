@@ -16,6 +16,7 @@ from pna_config import (
     CHANNEL_CAL_STATUS_MAP,
     CONFIGURATION,
     CONFIG_FILE,
+    EXPORT_DIRECTORY,
     PC_BASE_DIRECTORY,
     PNA_BASE_DIRECTORY,
     RAW_MEASUREMENT_PLAN,
@@ -311,6 +312,7 @@ def main():
         "PNA address": tk.StringVar(value=VISA_ADDRESS),
         "PNA data directory": tk.StringVar(value=PNA_BASE_DIRECTORY),
         "PC data directory": tk.StringVar(value=PC_BASE_DIRECTORY),
+        "Export directory": tk.StringVar(value=EXPORT_DIRECTORY),
         "Timeout (ms)": tk.StringVar(value=str(TIMEOUT_MS)),
         "Averaging factor": tk.StringVar(value=str(AVERAGING_FACTOR)),
         "Channel calibration map": tk.StringVar(value=json.dumps(CHANNEL_CAL_STATUS_MAP)),
@@ -319,6 +321,16 @@ def main():
         ttk.Label(form, text=label).grid(row=row, column=0, sticky="w", padx=(0, 8), pady=3)
         ttk.Entry(form, textvariable=value, width=90).grid(row=row, column=1, sticky="ew", pady=3)
     form.columnconfigure(1, weight=1)
+
+    def browse_export_directory():
+        path = filedialog.askdirectory(parent=root, title="Select export directory")
+        if path:
+            values["Export directory"].set(path)
+
+    export_row = list(values).index("Export directory")
+    ttk.Button(form, text="Browse...", command=browse_export_directory).grid(
+        row=export_row, column=2, padx=(5, 0)
+    )
 
     config_buttons = ttk.Frame(form)
     config_buttons.grid(row=len(values), column=1, sticky="w", pady=(5, 0))
@@ -334,6 +346,7 @@ def main():
         values["PNA address"].set(configuration["visa_address"])
         values["PNA data directory"].set(configuration["pna_base_directory"])
         values["PC data directory"].set(configuration["pc_base_directory"])
+        values["Export directory"].set(configuration.get("export_directory", "exports"))
         values["Timeout (ms)"].set(str(configuration["timeout_ms"]))
         values["Averaging factor"].set(str(configuration["averaging_factor"]))
         values["Channel calibration map"].set(json.dumps({
@@ -387,6 +400,7 @@ def main():
             configuration.update({
                 "pna_base_directory": values["PNA data directory"].get(),
                 "pc_base_directory": values["PC data directory"].get(),
+                "export_directory": values["Export directory"].get(),
                 "visa_address": values["PNA address"].get(),
                 "timeout_ms": int(values["Timeout (ms)"].get()),
                 "averaging_factor": int(values["Averaging factor"].get()),
@@ -402,12 +416,9 @@ def main():
             messagebox.showerror("Could not save configuration", str(error), parent=root)
 
     def export_configuration_bundle():
-        directory = filedialog.askdirectory(
-            parent=root,
-            title="Select export folder",
-            mustexist=False,
-        )
+        directory = values["Export directory"].get().strip()
         if not directory:
+            messagebox.showerror("Invalid export directory", "Enter an export directory first.", parent=root)
             return
         try:
             calibration_plan = calibration_editor.get_plan()
@@ -420,6 +431,7 @@ def main():
             configuration.update({
                 "pna_base_directory": values["PNA data directory"].get(),
                 "pc_base_directory": values["PC data directory"].get(),
+                "export_directory": directory,
                 "visa_address": values["PNA address"].get(),
                 "timeout_ms": int(values["Timeout (ms)"].get()),
                 "averaging_factor": int(values["Averaging factor"].get()),
