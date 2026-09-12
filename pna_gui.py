@@ -234,9 +234,9 @@ class PlanEditor(ttk.LabelFrame):
         )
         if not path:
             return
-        self._load_yaml_file(path)
+        self._load_yaml_file(path, show_success=True)
 
-    def _load_yaml_file(self, path):
+    def _load_yaml_file(self, path, show_success=False):
         try:
             with open(path, "r", encoding="utf-8") as stream:
                 plan = yaml.safe_load(stream)
@@ -264,6 +264,8 @@ class PlanEditor(ttk.LabelFrame):
             if self.plan:
                 self.task_list.selection_set(0)
                 self._load_task(0)
+            if show_success:
+                messagebox.showinfo("Plan loaded", f"Loaded measurement plan from:\n{path}", parent=self)
         except (OSError, TypeError, ValueError, yaml.YAMLError) as error:
             messagebox.showerror("Could not load YAML", str(error), parent=self)
 
@@ -380,8 +382,8 @@ def main():
                     plan_path = Path(plan_file)
                     if not plan_path.is_absolute():
                         plan_path = config_dir / plan_path
-                    editor._load_yaml_file(str(plan_path))
-            status.set(f"Loaded configuration: {path}")
+                    editor._load_yaml_file(str(plan_path), show_success=False)
+            messagebox.showinfo("Configuration loaded", f"Loaded configuration from:\n{path}", parent=root)
         except (OSError, TypeError, ValueError, yaml.YAMLError) as error:
             messagebox.showerror("Could not load configuration", str(error), parent=root)
 
