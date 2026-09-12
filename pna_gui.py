@@ -5,6 +5,7 @@ import copy
 import queue
 import threading
 import tkinter as tk
+from pathlib import Path
 from tkinter import filedialog, font as tkfont, messagebox, ttk
 
 import yaml
@@ -13,6 +14,8 @@ from pna_config import (
     AVERAGING_FACTOR,
     CAL_VERIFICATION_PLAN,
     CHANNEL_CAL_STATUS_MAP,
+    CONFIGURATION,
+    CONFIG_FILE,
     PC_BASE_DIRECTORY,
     PNA_BASE_DIRECTORY,
     RAW_MEASUREMENT_PLAN,
@@ -87,6 +90,7 @@ class PlanEditor(ttk.LabelFrame):
         ttk.Button(self, text="Add task", command=self._add_task).grid(row=6, column=1, sticky="w", pady=10)
         ttk.Button(self, text="Remove task", command=self._remove_task).grid(row=6, column=2, sticky="w", pady=10)
         ttk.Button(self, text="Load YAML...", command=self._load_yaml).grid(row=6, column=3, sticky="e", pady=10)
+        ttk.Button(self, text="Save YAML...", command=self._save_yaml).grid(row=7, column=3, sticky="e")
         ttk.Button(self, text="Move up", command=lambda: self._move_task(-1)).grid(row=7, column=1, sticky="w")
         ttk.Button(self, text="Move down", command=lambda: self._move_task(1)).grid(row=7, column=2, sticky="w")
 
@@ -229,6 +233,9 @@ class PlanEditor(ttk.LabelFrame):
         )
         if not path:
             return
+        self._load_yaml_file(path)
+
+    def _load_yaml_file(self, path):
         try:
             with open(path, "r", encoding="utf-8") as stream:
                 plan = yaml.safe_load(stream)
@@ -258,6 +265,24 @@ class PlanEditor(ttk.LabelFrame):
                 self._load_task(0)
         except (OSError, TypeError, ValueError, yaml.YAMLError) as error:
             messagebox.showerror("Could not load YAML", str(error), parent=self)
+
+    def _save_yaml(self):
+        if self.selected_index is not None:
+            self._collect_task(self.selected_index)
+        path = filedialog.asksaveasfilename(
+            parent=self,
+            title="Save measurement plan",
+            defaultextension=".yml",
+            filetypes=(("YAML files", "*.yml *.yaml"), ("All files", "*.*")),
+        )
+        if not path:
+            return
+        try:
+            with open(path, "w", encoding="utf-8") as stream:
+                yaml.safe_dump(self.plan, stream, sort_keys=False)
+            messagebox.showinfo("Plan saved", f"Saved measurement plan to:\n{path}", parent=self)
+        except OSError as error:
+            messagebox.showerror("Could not save YAML", str(error), parent=self)
 
     def get_plan(self):
         if self.selected_index is not None:
@@ -295,12 +320,135 @@ def main():
         ttk.Entry(form, textvariable=value, width=90).grid(row=row, column=1, sticky="ew", pady=3)
     form.columnconfigure(1, weight=1)
 
+    config_buttons = ttk.Frame(form)
+    config_buttons.grid(row=len(values), column=1, sticky="w", pady=(5, 0))
+
     notebook = ttk.Notebook(root)
     notebook.pack(fill="both", expand=True, padx=10, pady=(8, 0))
     calibration_editor = PlanEditor(notebook, "Calibration verification", CAL_VERIFICATION_PLAN)
     raw_editor = PlanEditor(notebook, "Raw measurement", RAW_MEASUREMENT_PLAN)
     notebook.add(calibration_editor, text="Calibration verification")
     notebook.add(raw_editor, text="Raw measurement")
+
+    def apply_configuration(configuration):
+        values["PNA address"].set(configuration["visa_address"])
+        values["PNA data directory"].set(configuration["pna_base_directory"])
+        values["PC data directory"].set(configuration["pc_base_directory"])
+        values["Timeout (ms)"].set(str(configuration["timeout_ms"]))
+        values["Averaging factor"].set(str(configuration["averaging_factor"]))
+        values["Channel calibration map"].set(json.dumps({
+            int(channel): status
+            for channel, status in configuration["channel_cal_status_map"].items()
+        }))
+
+    def load_configuration_file():
+        path = filedialog.askopenfilename(
+            parent=root,
+            title="Load PNA configuration",
+            initialfile=CONFIG_FILE.name,
+            filetypes=(("YAML files", "*.yml *.yaml"), ("All files", "*.*")),
+        )
+        if not path:
+            return
+        try:
+            with open(path, "r", encoding="utf-8") as stream:
+                configuration = yaml.safe_load(stream)
+            required = ("visa_address", "pna_base_directory", "pc_base_directory",
+                        "timeout_ms", "averaging_factor", "channel_cal_status_map")
+            missing = [key for key in required if key not in configuration]
+            if missing:
+                raise ValueError(f"Configuration is missing: {', '.join(missing)}")
+            apply_configuration(configuration)
+            plan_files = configuration.get("plan_files", {})
+            config_dir = Path(path).parent
+            for plan_key, editor in (("calibration", calibration_editor), ("raw", raw_editor)):
+                plan_file = plan_files.get(plan_key)
+                if plan_file:
+                    plan_path = Path(plan_file)
+                    if not plan_path.is_absolute():
+                        plan_path = config_dir / plan_path
+                    editor._load_yaml_file(str(plan_path))
+            status.set(f"Loaded configuration: {path}")
+        except (OSError, TypeError, ValueError, yaml.YAMLError) as error:
+            messagebox.showerror("Could not load configuration", str(error), parent=root)
+
+    def save_configuration_file():
+        path = filedialog.asksaveasfilename(
+            parent=root,
+            title="Save PNA configuration",
+            initialfile=CONFIG_FILE.name,
+            defaultextension=".yml",
+            filetypes=(("YAML files", "*.yml *.yaml"), ("All files", "*.*")),
+        )
+        if not path:
+            return
+        try:
+            configuration = copy.deepcopy(CONFIGURATION)
+            configuration.update({
+                "pna_base_directory": values["PNA data directory"].get(),
+                "pc_base_directory": values["PC data directory"].get(),
+                "visa_address": values["PNA address"].get(),
+                "timeout_ms": int(values["Timeout (ms)"].get()),
+                "averaging_factor": int(values["Averaging factor"].get()),
+                "channel_cal_status_map": {
+                    int(channel): value
+                    for channel, value in json.loads(values["Channel calibration map"].get()).items()
+                },
+            })
+            with open(path, "w", encoding="utf-8") as stream:
+                yaml.safe_dump(configuration, stream, sort_keys=False)
+            messagebox.showinfo("Configuration saved", f"Saved configuration to:\n{path}", parent=root)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
+            messagebox.showerror("Could not save configuration", str(error), parent=root)
+
+    def export_configuration_bundle():
+        directory = filedialog.askdirectory(
+            parent=root,
+            title="Select export folder",
+            mustexist=False,
+        )
+        if not directory:
+            return
+        try:
+            calibration_plan = calibration_editor.get_plan()
+            raw_plan = raw_editor.get_plan()
+            export_dir = Path(directory)
+            plans_dir = export_dir / "plans"
+            plans_dir.mkdir(parents=True, exist_ok=True)
+
+            configuration = copy.deepcopy(CONFIGURATION)
+            configuration.update({
+                "pna_base_directory": values["PNA data directory"].get(),
+                "pc_base_directory": values["PC data directory"].get(),
+                "visa_address": values["PNA address"].get(),
+                "timeout_ms": int(values["Timeout (ms)"].get()),
+                "averaging_factor": int(values["Averaging factor"].get()),
+                "channel_cal_status_map": {
+                    int(channel): value
+                    for channel, value in json.loads(values["Channel calibration map"].get()).items()
+                },
+                "plan_files": {
+                    "calibration": "plans/calibration_plan.yml",
+                    "raw": "plans/raw_measurement_plan.yml",
+                },
+            })
+            with (export_dir / "config.yml").open("w", encoding="utf-8") as stream:
+                yaml.safe_dump(configuration, stream, sort_keys=False)
+            with (plans_dir / "calibration_plan.yml").open("w", encoding="utf-8") as stream:
+                yaml.safe_dump(calibration_plan, stream, sort_keys=False)
+            with (plans_dir / "raw_measurement_plan.yml").open("w", encoding="utf-8") as stream:
+                yaml.safe_dump(raw_plan, stream, sort_keys=False)
+            messagebox.showinfo(
+                "Export complete",
+                f"Exported configuration and plans to:\n{export_dir}",
+                parent=root,
+            )
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
+            messagebox.showerror("Could not export configuration", str(error), parent=root)
+
+    ttk.Button(config_buttons, text="Load config...", command=load_configuration_file).pack(side="left", padx=(0, 5))
+    ttk.Button(config_buttons, text="Save config...", command=save_configuration_file).pack(side="left")
+    ttk.Button(config_buttons, text="Export all...", command=export_configuration_bundle).pack(side="left", padx=5)
 
     ttk.Label(root, text="Progress log").pack(anchor="w", padx=10)
     log_text = tk.Text(root, height=8, width=120, state="disabled", wrap="word")
