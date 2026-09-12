@@ -11,8 +11,8 @@ TIMEOUT_MS = 1_000_000
 AVERAGING_FACTOR = 20
 
 CHANNEL_CAL_STATUS_MAP = {
-    1: "calToCable",
-    2: "calToProbe",
+    1: "calToProbe",
+    2: "calToCable",
     3: "calToCableDeembedProbe",
 }
 

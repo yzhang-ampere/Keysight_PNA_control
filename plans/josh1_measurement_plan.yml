@@ -1,0 +1,10 @@
+# Raw DUT measurement tasks.
+- description: fixture + DUT, DDR5_15_DATA_B_21_23
+  finished: false
+  prompt: " cable 1 <-- DDR5_15_DATA_B_21 --> cable 2 \n cable 3 <-- DDR5_15_DATA_B_23 --> cable4"
+  base_name: DDR5_15_DATA_B_21_23
+  port_combinations:
+    - {ports: [1, 2], base_name: DDR5_15_DATA_B_21}
+    - {ports: [3, 4], base_name: DDR5_15_DATA_B_23}
+    - {ports: [1, 2, 3, 4], base_name: DDR5_15_DATA_B_21_23}
+  subfolders: {1: raw_measure, 2: raw_measure, 3: raw_measure}
