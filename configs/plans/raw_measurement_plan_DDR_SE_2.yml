@@ -1,0 +1,32 @@
+# Raw DUT measurement tasks.
+- description: DDR7_DATA_B_24
+  finished: false
+  prompt: " cable 1 <-- bump side -- DDR7_DATA_B_24 -- DIMM pad --> cable 3"
+  base_name: PKG_SKT_PCB_DDR7_DATA_B_24
+  port_combinations:
+    - {ports: [1, 3], base_name: PKG_SKT_PCB_DDR7_DATA_B_24}
+  subfolders: {1: raw_measure, 2: raw_measure, 3: raw_measure}
+
+- description: DDR7_DATA_B_25
+  finished: false
+  prompt: " cable 1 <-- bump side -- DDR7_DATA_B_25 -- DIMM pad --> cable 3"
+  base_name: PKG_SKT_PCB_DDR7_DATA_B_25
+  port_combinations:
+    - {ports: [1, 3], base_name: PKG_SKT_PCB_DDR7_DATA_B_25}
+  subfolders: {1: raw_measure, 2: raw_measure, 3: raw_measure}
+
+- description: DDR7_DATA_B_30
+  finished: false
+  prompt: " cable 1 <-- bump side -- DDR7_DATA_B_30 -- DIMM pad --> cable 3"
+  base_name: PKG_SKT_PCB_DDR7_DATA_B_30
+  port_combinations:
+    - {ports: [1, 3], base_name: PKG_SKT_PCB_DDR7_DATA_B_30}
+  subfolders: {1: raw_measure, 2: raw_measure, 3: raw_measure}
+
+- description: DDR7_DATA_B_31
+  finished: false
+  prompt: " cable 1 <-- bump side -- DDR7_DATA_B_31 -- DIMM pad --> cable 3"
+  base_name: PKG_SKT_PCB_DDR7_DATA_B_31
+  port_combinations:
+    - {ports: [1, 3], base_name: PKG_SKT_PCB_DDR7_DATA_B_31}
+  subfolders: {1: raw_measure, 2: raw_measure, 3: raw_measure}
