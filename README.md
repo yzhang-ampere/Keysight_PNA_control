@@ -55,6 +55,24 @@ Measurement tasks are configured in the YAML files under `plans/`. Each task con
 
 All listed port combinations are saved after the same averaged sweep.
 
+Probe-based tasks may also contain a passive `measurement_metadata` mapping. The
+GUI exposes it as editable YAML. For every declared `endpoint: probe`, record
+the physical port, probe name, part number, and serial number. A run is blocked
+before any PNA I/O if one of these fields is missing or the serial is a
+placeholder such as `REQUIRED_BEFORE_MEASUREMENT`.
+
+```yaml
+  measurement_metadata:
+    fixture_topology:
+      side_a:
+        endpoint: probe
+        probes:
+          - physical_port: 1
+            probe_name: GTL65-150-GS-DX
+            part_number: GTL65-150-GS-DX
+            serial_number: "00003510"
+```
+
 The GUI can load and save `config.yml` from arbitrary paths. Loading a configuration updates the connection/session fields and loads the plan files listed under `plan_files`. This makes the configuration and plan files suitable for recording the setup and progress of a lab session.
 
 ## Console execution

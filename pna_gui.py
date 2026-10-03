@@ -41,10 +41,10 @@ class PlanEditor(ttk.LabelFrame):
 
     def _build_widgets(self):
         self.task_list = tk.Listbox(self, width=38, height=16, exportselection=False)
-        self.task_list.grid(row=0, column=0, rowspan=8, sticky="nsew", padx=(0, 8))
+        self.task_list.grid(row=0, column=0, rowspan=10, sticky="nsew", padx=(0, 8))
         self.task_list.bind("<<ListboxSelect>>", self._task_selected)
         task_scroll = ttk.Scrollbar(self, orient="horizontal", command=self.task_list.xview)
-        task_scroll.grid(row=8, column=0, sticky="ew", padx=(0, 8))
+        task_scroll.grid(row=10, column=0, sticky="ew", padx=(0, 8))
         self.task_list.configure(xscrollcommand=task_scroll.set)
 
         fields = ttk.Frame(self)
@@ -88,18 +88,24 @@ class PlanEditor(ttk.LabelFrame):
         ttk.Label(self, text="Subfolders (channel=folder; channel=folder)").grid(row=4, column=1, columnspan=3, sticky="w", pady=(8, 2))
         self.subfolders = tk.StringVar()
         ttk.Entry(self, textvariable=self.subfolders, width=75).grid(row=5, column=1, columnspan=3, sticky="ew")
-        ttk.Button(self, text="Add task", command=self._add_task).grid(row=6, column=1, sticky="w", pady=10)
-        ttk.Button(self, text="Remove task", command=self._remove_task).grid(row=6, column=2, sticky="w", pady=10)
-        ttk.Button(self, text="Load YAML...", command=self._load_yaml).grid(row=6, column=3, sticky="e", pady=10)
-        ttk.Button(self, text="Save YAML...", command=self._save_yaml).grid(row=7, column=3, sticky="e")
-        ttk.Button(self, text="Move up", command=lambda: self._move_task(-1)).grid(row=7, column=1, sticky="w")
-        ttk.Button(self, text="Move down", command=lambda: self._move_task(1)).grid(row=7, column=2, sticky="w")
+        ttk.Label(self, text="Measurement metadata (YAML; probe serials are required before a probe run)").grid(
+            row=6, column=1, columnspan=3, sticky="w", pady=(8, 2)
+        )
+        self.measurement_metadata = tk.Text(self, height=10, width=75, wrap="none")
+        self.measurement_metadata.grid(row=7, column=1, columnspan=3, sticky="nsew")
+        ttk.Button(self, text="Add task", command=self._add_task).grid(row=8, column=1, sticky="w", pady=10)
+        ttk.Button(self, text="Remove task", command=self._remove_task).grid(row=8, column=2, sticky="w", pady=10)
+        ttk.Button(self, text="Load YAML...", command=self._load_yaml).grid(row=8, column=3, sticky="e", pady=10)
+        ttk.Button(self, text="Save YAML...", command=self._save_yaml).grid(row=9, column=3, sticky="e")
+        ttk.Button(self, text="Move up", command=lambda: self._move_task(-1)).grid(row=9, column=1, sticky="w")
+        ttk.Button(self, text="Move down", command=lambda: self._move_task(1)).grid(row=9, column=2, sticky="w")
 
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=1)
         self.columnconfigure(3, weight=1)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(2, weight=1)
+        self.rowconfigure(7, weight=1)
 
     def _refresh_tasks(self):
         self.task_list.delete(0, "end")
@@ -132,6 +138,10 @@ class PlanEditor(ttk.LabelFrame):
             ))
         self.combo_ports.set("")
         self.combo_base_name.set("")
+        self.measurement_metadata.delete("1.0", "end")
+        metadata = task.get("measurement_metadata")
+        if metadata is not None:
+            self.measurement_metadata.insert("1.0", yaml.safe_dump(metadata, sort_keys=False))
 
     def _collect_task(self, index):
         task = self.plan[index]
@@ -151,6 +161,14 @@ class PlanEditor(ttk.LabelFrame):
              "base_name": self.combinations.item(item, "values")[1]}
             for item in self.combinations.get_children()
         ]
+        metadata_text = self.measurement_metadata.get("1.0", "end").strip()
+        if metadata_text:
+            metadata = yaml.safe_load(metadata_text)
+            if not isinstance(metadata, dict):
+                raise ValueError("Measurement metadata must be a YAML mapping.")
+            task["measurement_metadata"] = metadata
+        else:
+            task.pop("measurement_metadata", None)
 
     def _add_combination(self):
         ports = self.combo_ports.get().strip()

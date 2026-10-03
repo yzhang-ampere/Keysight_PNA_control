@@ -1,0 +1,124 @@
+# Malagueta substrate differential four-probe calibration verification and ISD standards.
+# Ports 1 and 3 are on one physical side; ports 2 and 4 are on the other. The
+# unknown-thru tasks measure two insertion paths (1-2, 3-4) and two far-end
+# cross-talk paths (1-4, 3-2) on the probe calibration substrate. One-port
+# standards are measured separately so each physical probe has an unambiguous
+# Open/Short/Load record.
+
+- description: Four-probe unknown thru, ports 1 and 2
+  finished: false
+  prompt: Connect probes on ports 1 and 2 to the matching unknown-thru structure on the probe calibration substrate.
+  base_name: port1_unknownThru_port2
+  port_combinations:
+    - {ports: [1, 2], base_name: port1_unknownThru_port2}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Four-probe far-end cross-talk thru, ports 1 and 4
+  finished: false
+  prompt: Connect probes on ports 1 and 4 to the far-end cross-talk thru structure on the probe calibration substrate.
+  base_name: port1_unknownThru_port4
+  port_combinations:
+    - {ports: [1, 4], base_name: port1_unknownThru_port4}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Four-probe unknown thru, ports 3 and 4
+  finished: false
+  prompt: Connect probes on ports 3 and 4 to the matching unknown-thru structure on the probe calibration substrate.
+  base_name: port3_unknownThru_port4
+  port_combinations:
+    - {ports: [3, 4], base_name: port3_unknownThru_port4}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Four-probe far-end cross-talk thru, ports 3 and 2
+  finished: false
+  prompt: Connect probes on ports 3 and 2 to the far-end cross-talk thru structure on the probe calibration substrate.
+  base_name: port3_unknownThru_port2
+  port_combinations:
+    - {ports: [3, 2], base_name: port3_unknownThru_port2}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: All four probes in air
+  finished: false
+  prompt: Keep all four probes in air.
+  base_name: four_probe_openAir
+  port_combinations:
+    - {ports: [1], base_name: port1_openAir}
+    - {ports: [2], base_name: port2_openAir}
+    - {ports: [3], base_name: port3_openAir}
+    - {ports: [4], base_name: port4_openAir}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probe on port 1, calibration-substrate Open
+  finished: false
+  prompt: Touch the port 1 probe to the OPEN standard on the calibration substrate.
+  base_name: port1_open
+  port_combinations:
+    - {ports: [1], base_name: port1_open}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probes on ports 2 and 4, calibration-substrate Open
+  finished: false
+  prompt: Touch the port 2 and port 4 probes to their OPEN standards on the calibration substrate.
+  base_name: port2_port4_open
+  port_combinations:
+    - {ports: [2], base_name: port2_open}
+    - {ports: [4], base_name: port4_open}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probe on port 3, calibration-substrate Open
+  finished: false
+  prompt: Touch the port 3 probe to the OPEN standard on the calibration substrate.
+  base_name: port3_open
+  port_combinations:
+    - {ports: [3], base_name: port3_open}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probe on port 1, calibration-substrate Short
+  finished: false
+  prompt: Touch the port 1 probe to the SHORT standard on the calibration substrate.
+  base_name: port1_short
+  port_combinations:
+    - {ports: [1], base_name: port1_short}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probes on ports 2 and 4, calibration-substrate Short
+  finished: false
+  prompt: Touch the port 2 and port 4 probes to their SHORT standards on the calibration substrate.
+  base_name: port2_port4_short
+  port_combinations:
+    - {ports: [2], base_name: port2_short}
+    - {ports: [4], base_name: port4_short}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probe on port 3, calibration-substrate Short
+  finished: false
+  prompt: Touch the port 3 probe to the SHORT standard on the calibration substrate.
+  base_name: port3_short
+  port_combinations:
+    - {ports: [3], base_name: port3_short}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probe on port 1, calibration-substrate Load
+  finished: false
+  prompt: Touch the port 1 probe to the LOAD standard on the calibration substrate.
+  base_name: port1_load
+  port_combinations:
+    - {ports: [1], base_name: port1_load}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probes on ports 2 and 4, calibration-substrate Load
+  finished: false
+  prompt: Touch the port 2 and port 4 probes to their LOAD standards on the calibration substrate.
+  base_name: port2_port4_load
+  port_combinations:
+    - {ports: [2], base_name: port2_load}
+    - {ports: [4], base_name: port4_load}
+  subfolders: {1: verify_probe_calibration, 2: fixture}
+
+- description: Probe on port 3, calibration-substrate Load
+  finished: false
+  prompt: Touch the port 3 probe to the LOAD standard on the calibration substrate.
+  base_name: port3_load
+  port_combinations:
+    - {ports: [3], base_name: port3_load}
+  subfolders: {1: verify_probe_calibration, 2: fixture}

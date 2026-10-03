@@ -8,6 +8,45 @@ class MeasurementCancelled(Exception):
     """Raised when the user cancels a measurement plan."""
 
 
+def validate_probe_metadata(task):
+    """Require an auditable identity for each probe declared by a task."""
+    metadata = task.get("measurement_metadata")
+    if metadata is None:
+        return
+    if not isinstance(metadata, dict):
+        raise ValueError("measurement_metadata must be a YAML mapping.")
+
+    topology = metadata.get("fixture_topology")
+    if topology is None:
+        return
+    if not isinstance(topology, dict):
+        raise ValueError("measurement_metadata.fixture_topology must be a mapping.")
+
+    for side_name, side in topology.items():
+        if not isinstance(side, dict) or side.get("endpoint") != "probe":
+            continue
+        probes = side.get("probes")
+        if not isinstance(probes, list) or not probes:
+            raise ValueError(
+                f"Probe endpoint '{side_name}' requires a non-empty probes list."
+            )
+        for probe_index, probe in enumerate(probes, start=1):
+            if not isinstance(probe, dict):
+                raise ValueError(f"Probe {probe_index} on '{side_name}' must be a mapping.")
+            missing = [
+                field for field in ("physical_port", "probe_name", "part_number", "serial_number")
+                if not probe.get(field)
+            ]
+            serial_number = str(probe.get("serial_number", "")).strip()
+            if serial_number.upper() in {"REQUIRED_BEFORE_MEASUREMENT", "PENDING", "UNKNOWN"}:
+                missing.append("serial_number")
+            if missing:
+                fields = ", ".join(sorted(set(missing)))
+                raise ValueError(
+                    f"Probe {probe_index} on '{side_name}' is missing required metadata: {fields}."
+                )
+
+
 class PNAController:
     def __init__(self, resource, timeout_ms=1_000_000, logger=print):
         self.resource = resource
@@ -109,6 +148,9 @@ class PNAController:
     def run_plan(self, pna_base_dir, pc_base_dir, plan, channel_cal_map,
                  average_factor, prompt_callback=None, stop_event=None,
                  task_callback=None):
+        for task in plan:
+            if not task.get("finished", False):
+                validate_probe_metadata(task)
         channels = self.discover_active_channels()
         total_tasks = len(plan)
         for task_index, task in enumerate(plan):
