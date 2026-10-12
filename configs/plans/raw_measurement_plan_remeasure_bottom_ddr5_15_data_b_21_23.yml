@@ -1,0 +1,18 @@
+# Focused diagnostic remeasurement.  This intentionally has one task so the
+# N leg, P leg, and coupled 4-port Touchstone export come from one averaged sweep.
+- description: Remeasure 2xThru BOTTOM DDR5_15_DATA_B_21_23
+  finished: false
+  prompt: >-
+    Activate only channel 1 with the calToCable state; no probe calibration,
+    fixture removal, or calibration-verification sweep is required. Connect
+    cable 1 to BOTTOM PCB 2xThru DDR5_15_DATA_B_21 and cable 2 to its far end;
+    connect cable 3 to BOTTOM PCB 2xThru DDR5_15_DATA_B_23 and cable 4 to its
+    far end. Preserve this physical orientation and inspect/torque the cable
+    1-to-2 path before acquisition. Do not overwrite the 20260827 reference
+    measurement.
+  base_name: 2xThru_PCB_BOTTOM_DDR5_15_DATA_B_21_23_remeasure
+  port_combinations:
+    - {ports: [1, 2], base_name: 2xThru_PCB_BOTTOM_DDR5_15_DATA_B_21_remeasure}
+    - {ports: [3, 4], base_name: 2xThru_PCB_BOTTOM_DDR5_15_DATA_B_23_remeasure}
+    - {ports: [1, 2, 3, 4], base_name: 2xThru_PCB_BOTTOM_DDR5_15_DATA_B_21_23_remeasure}
+  subfolders: {1: fixture}

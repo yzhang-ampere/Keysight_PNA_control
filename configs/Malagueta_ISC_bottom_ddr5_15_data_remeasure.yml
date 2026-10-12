@@ -1,0 +1,17 @@
+# Focused SMA-to-SMA PNA session for the suspect BOTTOM CH15 DATA_B_21_23
+# 2xThru. Only the channel-1 calToCable state is required.
+# Load this configuration in the GUI, or copy its plan_files entries into
+# config.yml before invoking the console launcher.
+pna_base_directory: 'D:\PSIG_remote_share_folder\temp_autosave_data'
+pc_base_directory: 'Z:\temp_autosave_data'
+export_directory: 'exports'
+visa_address: 'TCPIP0::10.76.79.222::inst0::INSTR'
+timeout_ms: 1000000
+averaging_factor: 20
+
+channel_cal_status_map:
+  1: calToCable
+
+plan_files:
+  calibration: plans/calibration_plan_sma_not_required.yml
+  raw: plans/raw_measurement_plan_remeasure_bottom_ddr5_15_data_b_21_23.yml
