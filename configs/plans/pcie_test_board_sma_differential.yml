@@ -1,0 +1,102 @@
+# PCIe differential pairs on the SMA-to-SMA test board.
+# Each task acquires one averaged sweep and exports N, P, and the combined S4P.
+
+- description: PCIe test board short1, layer 5
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_short1_L5_N --> cable 2; cable 3 <-- PCIE_short1_L5_P --> cable 4."
+  base_name: PCIE_short1_L5
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_short1_L5_N}
+    - {ports: [3, 4], base_name: PCIE_short1_L5_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_short1_L5}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board short2, layer 7
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_short2_L7_N --> cable 2; cable 3 <-- PCIE_short2_L7_P --> cable 4."
+  base_name: PCIE_short2_L7
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_short2_L7_N}
+    - {ports: [3, 4], base_name: PCIE_short2_L7_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_short2_L7}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board short3, layer 9
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_short3_L9_N --> cable 2; cable 3 <-- PCIE_short3_L9_P --> cable 4."
+  base_name: PCIE_short3_L9
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_short3_L9_N}
+    - {ports: [3, 4], base_name: PCIE_short3_L9_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_short3_L9}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board short4, layer 11
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_short4_L11_N --> cable 2; cable 3 <-- PCIE_short4_L11_P --> cable 4."
+  base_name: PCIE_short4_L11
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_short4_L11_N}
+    - {ports: [3, 4], base_name: PCIE_short4_L11_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_short4_L11}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board short5, layer 20
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_short5_L20_N --> cable 2; cable 3 <-- PCIE_short5_L20_P --> cable 4."
+  base_name: PCIE_short5_L20
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_short5_L20_N}
+    - {ports: [3, 4], base_name: PCIE_short5_L20_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_short5_L20}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board short6, layer 22
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_short6_L22_N --> cable 2; cable 3 <-- PCIE_short6_L22_P --> cable 4."
+  base_name: PCIE_short6_L22
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_short6_L22_N}
+    - {ports: [3, 4], base_name: PCIE_short6_L22_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_short6_L22}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board medium1, layer 9
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_medium1_L9_N --> cable 2; cable 3 <-- PCIE_medium1_L9_P --> cable 4."
+  base_name: PCIE_medium1_L9
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_medium1_L9_N}
+    - {ports: [3, 4], base_name: PCIE_medium1_L9_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_medium1_L9}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board medium2, layer 11
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_medium2_L11_N --> cable 2; cable 3 <-- PCIE_medium2_L11_P --> cable 4."
+  base_name: PCIE_medium2_L11
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_medium2_L11_N}
+    - {ports: [3, 4], base_name: PCIE_medium2_L11_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_medium2_L11}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board medium3, layer 20
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_medium3_L20_N --> cable 2; cable 3 <-- PCIE_medium3_L20_P --> cable 4."
+  base_name: PCIE_medium3_L20
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_medium3_L20_N}
+    - {ports: [3, 4], base_name: PCIE_medium3_L20_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_medium3_L20}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board medium4, layer 22
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_medium4_L22_N --> cable 2; cable 3 <-- PCIE_medium4_L22_P --> cable 4."
+  base_name: PCIE_medium4_L22
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_medium4_L22_N}
+    - {ports: [3, 4], base_name: PCIE_medium4_L22_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_medium4_L22}
+  subfolders: {1: raw_measure}

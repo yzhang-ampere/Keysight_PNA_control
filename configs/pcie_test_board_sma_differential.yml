@@ -1,0 +1,15 @@
+# PCIe differential test-board session using SMA connections on both ends.
+# No probes are used, so no probe calibration verification or fixture removal is required.
+pna_base_directory: 'D:\PSIG_remote_share_folder\ARM_PCIE_test_board'
+pc_base_directory: 'Z:\ARM_PCIE_test_board'
+export_directory: 'exports'
+visa_address: 'TCPIP0::10.76.79.222::inst0::INSTR'
+timeout_ms: 1000000
+averaging_factor: 20
+
+channel_cal_status_map:
+  1: calToCable
+
+plan_files:
+  calibration: plans/calibration_plan_sma_not_required.yml
+  raw: plans/pcie_test_board_sma_differential.yml
