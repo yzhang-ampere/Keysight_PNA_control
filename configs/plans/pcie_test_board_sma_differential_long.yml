@@ -1,0 +1,62 @@
+# Supplemental PCIe long differential pairs on the SMA-to-SMA test board.
+# Each task acquires one averaged sweep and exports N, P, and the combined S4P.
+
+- description: PCIe test board long1, layer 5
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_long1_L5_N --> cable 2; cable 3 <-- PCIE_long1_L5_P --> cable 4."
+  base_name: PCIE_long1_L5
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_long1_L5_N}
+    - {ports: [3, 4], base_name: PCIE_long1_L5_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_long1_L5}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board long2, layer 7
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_long2_L7_N --> cable 2; cable 3 <-- PCIE_long2_L7_P --> cable 4."
+  base_name: PCIE_long2_L7
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_long2_L7_N}
+    - {ports: [3, 4], base_name: PCIE_long2_L7_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_long2_L7}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board long3, layer 9
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_long3_L9_N --> cable 2; cable 3 <-- PCIE_long3_L9_P --> cable 4."
+  base_name: PCIE_long3_L9
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_long3_L9_N}
+    - {ports: [3, 4], base_name: PCIE_long3_L9_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_long3_L9}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board long4, layer 11
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_long4_L11_N --> cable 2; cable 3 <-- PCIE_long4_L11_P --> cable 4."
+  base_name: PCIE_long4_L11
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_long4_L11_N}
+    - {ports: [3, 4], base_name: PCIE_long4_L11_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_long4_L11}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board long5, layer 20
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_long5_L20_N --> cable 2; cable 3 <-- PCIE_long5_L20_P --> cable 4."
+  base_name: PCIE_long5_L20
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_long5_L20_N}
+    - {ports: [3, 4], base_name: PCIE_long5_L20_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_long5_L20}
+  subfolders: {1: raw_measure}
+
+- description: PCIe test board long6, layer 22
+  finished: false
+  prompt: "Connect cable 1 <-- PCIE_long6_L22_N --> cable 2; cable 3 <-- PCIE_long6_L22_P --> cable 4."
+  base_name: PCIE_long6_L22
+  port_combinations:
+    - {ports: [1, 2], base_name: PCIE_long6_L22_N}
+    - {ports: [3, 4], base_name: PCIE_long6_L22_P}
+    - {ports: [1, 2, 3, 4], base_name: PCIE_long6_L22}
+  subfolders: {1: raw_measure}

@@ -1,0 +1,16 @@
+# Supplemental PCIe long differential-pair session on the SMA-to-SMA test board.
+# This preserves the same cable calibration and session settings as the original
+# PCIe SMA differential configuration while using a separate raw-measurement log.
+pna_base_directory: 'D:\\PSIG_remote_share_folder\\ARM_PCIE_test_board'
+pc_base_directory: 'Z:\\ARM_PCIE_test_board'
+export_directory: 'exports'
+visa_address: 'TCPIP0::10.76.79.222::inst0::INSTR'
+timeout_ms: 1000000
+averaging_factor: 20
+
+channel_cal_status_map:
+  1: calToCable
+
+plan_files:
+  calibration: plans/calibration_plan_sma_not_required.yml
+  raw: plans/pcie_test_board_sma_differential_long.yml
